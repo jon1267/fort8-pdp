@@ -5,24 +5,17 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Services\Images\Img;
-use App\Services\Images\ImageDelete;
 use App\Http\Requests\AdminCategoryStoreRequest;
 use App\Http\Requests\AdminCategoryUpdateRequest;
 
 class CategoryController extends Controller
 {
     private $img;
-    private $imgDelete;
     private $settingsImageStorage;
-    /**
-     * @var ImageDelete
-     */
-    private $imageDelete;
 
-    public function __construct(Img $img, ImageDelete $imgDelete)
+    public function __construct(Img $img)
     {
         $this->img = $img;
-        $this->imgDelete = $imgDelete;
         $this->settingsImageStorage = config('config.settings_images');
     }
 
@@ -62,8 +55,8 @@ class CategoryController extends Controller
     {
         //dd($request);
         $data = $request->except('_token');
-        $data['header_mobile'] = $this->img->getImg($request, 'header_mobile',  $this->settingsImageStorage);
-        $data['header_desktop'] = $this->img->getImg($request, 'header_desktop',  $this->settingsImageStorage);
+        $data['header_mobile'] = $this->img->save($request, 'header_mobile',  $this->settingsImageStorage);
+        $data['header_desktop'] = $this->img->save($request, 'header_desktop',  $this->settingsImageStorage);
         $data['slider_show'] = $data['slider_show'] ?? 0;
 
         if (Category::create($data)) {
@@ -113,16 +106,19 @@ class CategoryController extends Controller
     {
         //dd($request, $category);
         $data = $request->except('_token', '_method', 'deleted_image', 'deleted_image1');
-        $data['header_mobile'] = $this->img->updateImg($request, 'header_mobile', $category->header_mobile, $this->settingsImageStorage);
-        $data['header_desktop'] = $this->img->updateImg($request, 'header_desktop', $category->header_desktop ,$this->settingsImageStorage);
+        $data['header_mobile'] = $this->img->save($request, 'header_mobile', $this->settingsImageStorage, $category->header_mobile);
+        $data['header_desktop'] = $this->img->save($request, 'header_desktop', $this->settingsImageStorage, $category->header_desktop);
         $data['slider_show'] = $data['slider_show'] ?? 0;
 
-        $delImage = $request->deleted_image;
-        $this->imgDelete->delete($delImage['model'], $delImage['field'], $delImage['id'], $this->settingsImageStorage);
-
-        $nextImage = $request->deleted_image1;
-        $this->imgDelete->delete($nextImage['model'], $nextImage['field'], $nextImage['id'], $this->settingsImageStorage);
-
+        // если нажали удалить (старое) фото удаляем файл фото, и обнуляем поле в табл.
+        if (!is_null($request->deleted_image['id'])) {
+            $this->img->delete($category->header_mobile);
+            $data['header_mobile'] = null;
+        }
+        if (!is_null($request->deleted_image1['id'])) {
+            $this->img->delete($category->header_desktop);
+            $data['header_desktop'] = null;
+        }
 
         if ($category->update($data)) {
             return redirect()->route('admin.category.index')
@@ -143,6 +139,13 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
+        if (!is_null($category->header_mobile)) {
+            $this->img->delete($category->header_mobile);
+        }
+        if (!is_null($category->header_desktop)) {
+            $this->img->delete($category->header_desktop);
+        }
+
         if($category->delete()) {
             return redirect()->route('admin.category.index')
                 ->with(['status' => 'Категория успешно удалена']);

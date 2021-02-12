@@ -2,6 +2,7 @@
 
 namespace App\Services\Images;
 
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -22,38 +23,28 @@ use Illuminate\Support\Str;
  */
 class Img
 {
-    public function getImg($request, string $imgField, string $imageStorage)
-    {
-        $imgPath = null;
-
-        if ($request->hasFile($imgField)) {
-            $image = $request->file($imgField);
-            if ($image->isValid()) {
-                $ext = $image->getClientOriginalExtension(); // ? strtolower()
-                $filename = time() . '-' . Str::random(8) . '.' . $ext;
-                //dd($image, $filename, $ext);
-
-                //фактическое сохранение {img} - имя поля в $request и в mysql табл.
-                //$request->img->storeAs('images', $filename, 'public');
-                $request->{$imgField}->storeAs($imageStorage, $filename, 'public');
-                $imgPath = $filename;
-            }
-        }
-
-        return $imgPath;
-    }
-
-    public function updateImg($request, string $imgField, ?string $oldImageName, string $imageStorage)
+    public function save($request, string $imgField, string $imageStorage, $oldImageName = null)
     {
         $imgPath = $oldImageName;
 
         if ($request->hasFile($imgField)) {
             $image = $request->file($imgField);
             if ($image->isValid()) {
-                $imgPath = $this->getImg($request, $imgField, $imageStorage);
+                $ext = $image->getClientOriginalExtension();
+                $filename = time() . '-' . Str::random(8) . '.' . $ext;
+
+                Storage::disk('public_images')->put($imageStorage.'/'.$filename, file_get_contents($image));
+
+                $imgPath = $imageStorage.'/'.$filename;
             }
         }
 
         return $imgPath;
+    }
+
+    public function delete(string $imgPath)
+    {
+        return Storage::disk('public_images')->delete($imgPath);//это без симлинк
+
     }
 }

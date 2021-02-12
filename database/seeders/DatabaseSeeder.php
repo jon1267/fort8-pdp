@@ -18,5 +18,6 @@ class DatabaseSeeder extends Seeder
         $this->call(CategorySeeder::class);
         $this->call(NoteSeeder::class);
         $this->call(SettingSeeder::class);
+        $this->call(JsonSeeder::class);
     }
 }

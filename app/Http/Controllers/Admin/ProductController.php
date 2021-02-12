@@ -11,7 +11,6 @@ use App\Models\Note;
 use App\Http\Requests\AdminProductStoreRequest;
 use App\Http\Requests\AdminProductUpdateRequest;
 use App\Services\Images\Img;
-use App\Services\Images\ImageDelete;
 use App\Services\Variants\Variants;
 use Illuminate\Support\Facades\Storage;
 
@@ -20,14 +19,12 @@ class ProductController extends Controller
     private $img;
     private $variants;
     private $productImageStorage;
-    private $imgDelete;
 
-    public function __construct(Img $img, Variants $variants, ImageDelete $imgDelete)
+    public function __construct(Img $img, Variants $variants)
     {
         $this->img = $img;
         $this->variants = $variants;
         $this->productImageStorage = config('config.product_images');
-        $this->imgDelete = $imgDelete;
     }
 
     /**
@@ -70,14 +67,15 @@ class ProductController extends Controller
     {
         //dd($request);
         $data = $request->except('_token', 'categories', 'variants', 'notes');
-        $data['img'] = $this->img->getImg($request, 'img', $this->productImageStorage);
-        $data['img1'] = $this->img->getImg($request, 'img1', $this->productImageStorage);
-        $data['img2'] = $this->img->getImg($request, 'img2', $this->productImageStorage);
+        $data['img'] = $this->img->save($request, 'img', $this->productImageStorage);
+        $data['img2'] = $this->img->save($request, 'img2', $this->productImageStorage);
+        $data['img3'] = $this->img->save($request, 'img3', $this->productImageStorage);
         $categories = $request->categories;
         $notes = $request->notes;
         $notes2 = $request->notes2;
         $notes3 = $request->notes3;
         $rawVariants = $request->only('variants');
+        //dd($data);
 
         $product = Product::create($data);
         $product->categories()->sync($categories);
@@ -130,22 +128,29 @@ class ProductController extends Controller
     {
         //dd($request);
         $data = $request->except('_token', '_method' ,'categories', 'variants');
-        $data['img'] = $this->img->updateImg($request, 'img', $product->img, $this->productImageStorage);
-        $data['img1'] = $this->img->updateImg($request, 'img1', $product->img1, $this->productImageStorage);
-        $data['img2'] = $this->img->updateImg($request, 'img2', $product->img2, $this->productImageStorage);
+
+        $data['img'] = $this->img->save($request, 'img',   $this->productImageStorage, $product->img);
+        $data['img2'] = $this->img->save($request, 'img2', $this->productImageStorage,  $product->img2);
+        $data['img3'] = $this->img->save($request, 'img3', $this->productImageStorage, $product->img3);
         $categories = $request->categories;
         $notes = $request->notes;
         $notes2 = $request->notes2;
         $notes3 = $request->notes3;
         $rawVariants = $request->only('variants');
 
-        // удаление, если нажато для img img1 img2
-        $delImage = $request->deleted_image;
-        $delImage1 = $request->deleted_image1;
-        $delImage2 = $request->deleted_image2;
-        $this->imgDelete->delete($delImage['model'], $delImage['field'], $delImage['id'], $this->productImageStorage);
-        $this->imgDelete->delete($delImage1['model'], $delImage1['field'], $delImage1['id'], $this->productImageStorage);
-        $this->imgDelete->delete($delImage2['model'], $delImage2['field'], $delImage2['id'], $this->productImageStorage);
+        // удаление, если нажато удалить старое фото для img img2 img3
+        if (!is_null($request->deleted_image['id'])) {
+            $this->img->delete($product->img);
+            $data['img'] = '';
+        }
+        if (!is_null($request->deleted_image1['id'])) {
+            $this->img->delete($product->img2);
+            $data['img2'] =  null;
+        }
+        if (!is_null($request->deleted_image2['id'])) {
+            $this->img->delete($product->img3);
+            $data['img3'] = null;
+        }
 
         $product->update($data);
         $product->categories()->sync($categories);
@@ -153,7 +158,6 @@ class ProductController extends Controller
         $product->notes2()->sync($notes2);
         $product->notes3()->sync($notes3);
 
-        //если ввели вариации (варианты) сохраняем их
         $this->variants->store($rawVariants, $product->id);
 
         return redirect()->route('admin.product.index')
@@ -175,13 +179,13 @@ class ProductController extends Controller
         $this->variants->deleteVariants($product->id);
 
         if (!empty($product->img)) {
-            Storage::delete('/public/'.$this->productImageStorage.'/'.$product->img);
-        }
-        if (!empty($product->img1)) {
-            Storage::delete('/public/'.$this->productImageStorage.'/'.$product->img1);
+            $this->img->delete($product->img);//это без симлинк
         }
         if (!empty($product->img2)) {
-            Storage::delete('/public/'.$this->productImageStorage.'/'. $product->img2);
+            $this->img->delete($product->img2);
+        }
+        if (!empty($product->img3)) {
+            $this->img->delete($product->img3);
         }
 
         $product->delete();
@@ -192,10 +196,8 @@ class ProductController extends Controller
 
     /**
      * тк это вызывается с JS(ajax) то неудобно внедрять php объект, работаем с $product->id
-     * @param $productId
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function deleteProductImage($productId)
+    /*public function deleteProductImage($productId)
     {
         $product = Product::where('id', $productId)->first();
 
@@ -205,5 +207,5 @@ class ProductController extends Controller
         }
 
         return response()->json(['success' => true]);
-    }
+    }*/
 }

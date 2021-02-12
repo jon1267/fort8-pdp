@@ -24,13 +24,14 @@ class AdminProductStoreRequest extends FormRequest
     public function rules()
     {
         return [
+            'sort' =>'required|int',
             'vendor' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'categories' => 'required|array|min:1',
             'notes' => 'required|array|min:1',
             'img' => 'required|image|mimes:jpeg,jpg,png|max:2048',
             'brand_id' => 'required|int|exists:brands,id',
-            'aroma_id' => 'required|int|exists:aromas,id',
+            //'aroma_id' => 'required|int|exists:aromas,id',
             'variants' => 'required|array|min:1',
 
         ];

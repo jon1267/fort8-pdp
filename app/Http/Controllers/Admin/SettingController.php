@@ -84,8 +84,8 @@ class SettingController extends Controller
     public function update(Request $request, Setting $setting)
     {
         $data = $request->except('_token', '_method');
-        $data['header_mobile'] = $this->img->updateImg($request, 'header_mobile', $setting->header_mobile, $this->settingsImageStorage);
-        $data['header_desktop'] = $this->img->updateImg($request, 'header_desktop', $setting->header_desktop, $this->settingsImageStorage);
+        $data['header_mobile'] = $this->img->save($request, 'header_mobile', $this->settingsImageStorage, $setting->header_mobile);
+        $data['header_desktop'] = $this->img->save($request, 'header_desktop', $this->settingsImageStorage, $setting->header_desktop);
         $data['slider_show'] = $data['slider_show'] ?? 0;
 
         $setting->update($data);

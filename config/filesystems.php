@@ -52,6 +52,13 @@ return [
             'endpoint' => env('AWS_ENDPOINT'),
         ],
 
+        // for save pics in /public/images
+        'public_images' => [
+            'driver' => 'local',
+            'root'   => public_path(),
+            'visibility' => 'public',
+        ],
+
     ],
 
     /*

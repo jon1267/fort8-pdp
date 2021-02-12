@@ -24,8 +24,20 @@
                                     <input type="hidden" name="created_by_id" value="{{ $userId }}">
                                 @endif
 
-                                <div class="form-group ml-2">
-                                    <label for="vendor">Поставщик (производитель?)</label>
+                                <div class="form-group col-2">
+                                    <label for="sort">Порядок сортировки</label>
+                                    <input class="form-control @error('sort') is-invalid @enderror" type="text"
+                                           id="sort" name="sort" placeholder="Порядок сортировки"
+                                           value="{{(isset($product->sort)) ? $product->sort : old('sort')}}">
+                                    @error('sort')
+                                    <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group mt-5 ml-2">
+                                    <label for="vendor">Поставщик (производитель)</label>
                                     <input class="form-control @error('vendor') is-invalid @enderror" type="text"
                                            id="vendor" name="vendor" placeholder="Введите поставщика товара"
                                            value="{{(isset($product->vendor)) ? $product->vendor : old('vendor')}}">
@@ -98,7 +110,8 @@
                                                     <label for="old_img" >Старое бенд. фото</label>
                                                     <a href="#" onclick="event.preventDefault(); imageDelete('Product', 'img' ,'{{ $product->id }}', 'deleted_image')" id="delete-image-button" class="badge badge-danger ml-2" title="удалить старое изображение" >&nbsp;x&nbsp;</a>
                                                     <div>
-                                                        <img src="{{asset('/storage/images/product/' . $product->img) }}" width="60" alt="Image">
+                                                        {{--<img src="{{asset('/storage/images/product/' . $product->img) }}" width="60" alt="Image">--}}
+                                                        <img src="{{asset($product->img) }}" width="60" alt="Image">
                                                     </div>
                                                 </div>
                                                 <input type="hidden" id="deleted_image_model" name="deleted_image[model]" value="">
@@ -114,11 +127,11 @@
                                         <label for="exampleInputFile1">Оригинальное фото товара</label>
                                         <div class="input-group">
                                             <div class="custom-file">
-                                                <input type="file" class="custom-file-input @error('img1') is-invalid @enderror" id="img1" name="img1" aria-describedby="customFileInput1">
+                                                <input type="file" class="custom-file-input @error('img2') is-invalid @enderror" id="img2" name="img2" aria-describedby="customFileInput1">
                                                 <label class="custom-file-label" for="customFileInput1">Выберите оригинальное фото</label>
                                             </div>
                                         </div>
-                                        @error('img1')
+                                        @error('img2')
                                         <!-- нада style="display: inline-block", т.к. custom-file-input где-то ставит d-none -->
                                         <span class="invalid-feedback" style="display: inline-block" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -126,12 +139,12 @@
                                         @enderror
 
                                         <div>
-                                            @if(isset($product) && (!empty($product->img1)))
+                                            @if(isset($product) && (!empty($product->img2)))
                                                 <div class="form-group mt-2" id="old_div_deleted_image1">
-                                                    <label for="old_img1" >Старое оригинальное фото</label>
-                                                    <a href="#" onclick="event.preventDefault(); imageDelete('Product', 'img1' ,'{{ $product->id }}', 'deleted_image1')" id="delete-image1-button" class="badge badge-danger ml-2" title="удалить старое оригинальное" >&nbsp;x&nbsp;</a>
+                                                    <label for="old_img2" >Старое оригинальное фото</label>
+                                                    <a href="#" onclick="event.preventDefault(); imageDelete('Product', 'img2' ,'{{ $product->id }}', 'deleted_image1')" id="delete-image1-button" class="badge badge-danger ml-2" title="удалить старое оригинальное" >&nbsp;x&nbsp;</a>
                                                     <div>
-                                                        <img src="{{asset('/storage/images/product/' . $product->img1) }}" width="60" alt="Image">
+                                                        <img src="{{asset($product->img2) }}" width="60" alt="Image">
                                                     </div>
                                                 </div>
                                                 <input type="hidden" id="deleted_image1_model" name="deleted_image1[model]" value="">
@@ -147,11 +160,11 @@
                                         <label for="exampleInputFile2">Оригинальное фото пробник</label>
                                         <div class="input-group">
                                             <div class="custom-file">
-                                                <input type="file" class="custom-file-input @error('img2') is-invalid @enderror" id="img2" name="img2" aria-describedby="customFileInput2">
+                                                <input type="file" class="custom-file-input @error('img3') is-invalid @enderror" id="img3" name="img3" aria-describedby="customFileInput2">
                                                 <label class="custom-file-label" for="customFileInput2">Выберите оригинальное фото пробник</label>
                                             </div>
                                         </div>
-                                        @error('img2')
+                                        @error('img3')
                                         <!-- нада style="display: inline-block", т.к. custom-file-input где-то ставит d-none -->
                                         <span class="invalid-feedback" style="display: inline-block" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -159,12 +172,12 @@
                                         @enderror
 
                                         <div>
-                                            @if(isset($product) && (!empty($product->img2)))
+                                            @if(isset($product) && (!empty($product->img3)))
                                                 <div class="form-group mt-2" id="old_div_deleted_image2">
-                                                    <label for="old_img2" >Старое оригинальное фото</label>
-                                                    <a href="#" onclick="event.preventDefault(); imageDelete('Product', 'img2' ,'{{ $product->id }}', 'deleted_image2')" id="delete-image2-button" class="badge badge-danger ml-2" title="удалить старое оригинальное" >&nbsp;x&nbsp;</a>
+                                                    <label for="old_img3" >Старое оригинальное фото</label>
+                                                    <a href="#" onclick="event.preventDefault(); imageDelete('Product', 'img3' ,'{{ $product->id }}', 'deleted_image2')" id="delete-image2-button" class="badge badge-danger ml-2" title="удалить старое оригинальное" >&nbsp;x&nbsp;</a>
                                                     <div>
-                                                        <img src="{{asset('/storage/images/product/' . $product->img2) }}" width="60" alt="Image">
+                                                        <img src="{{asset($product->img3) }}" width="60" alt="Image">
                                                     </div>
                                                 </div>
                                                 <input type="hidden" id="deleted_image2_model" name="deleted_image2[model]" value="">

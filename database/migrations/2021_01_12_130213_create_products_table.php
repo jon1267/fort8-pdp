@@ -15,16 +15,17 @@ class CreateProductsTable extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('aroma_id');
+            $table->unsignedBigInteger('aroma_id')->nullable();
             $table->unsignedBigInteger('brand_id');
             $table->string('vendor');
             $table->string('name');
             $table->text('description')->nullable();
             $table->text('description_ua')->nullable();
             $table->string('img');
-            $table->string('img1')->nullable();
             $table->string('img2')->nullable();
+            $table->string('img3')->nullable();
             $table->unsignedTinyInteger('hide')->default(0);
+            $table->bigInteger('sort')->nullable();
             $table->unsignedBigInteger('created_by_id')->nullable();
             $table->unsignedBigInteger('updated_by_id')->nullable();
             $table->timestamps();

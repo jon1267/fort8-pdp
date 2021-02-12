@@ -38,7 +38,8 @@
                                         <td>{{ Str::limit($product->description_ua) }}</td>
                                         <td>
                                             @if(!empty($product->img))
-                                                <img src="{{asset('/storage/images/product/' . $product->img) }}" width="50"  alt="image">
+                                                {{-- <img src="{{asset('/storage/images/product/' . $product->img) }}" width="50"  alt="image">--}}
+                                                <img src="{{asset($product->img) }}" width="50"  alt="image">
                                             @endif
                                         </td>
 

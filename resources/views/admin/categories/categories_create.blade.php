@@ -66,12 +66,13 @@
 
                                     <div>
                                         @if(isset($category) && (!empty($category->header_mobile)))
-                                            <div class="form-group mt-2" id="old-image-div">
+                                            <div class="form-group mt-2" id="old_div_deleted_image">
                                                 <label for="old_img" >Старое изображение</label>
                                                 <a href="#" onclick="event.preventDefault(); imageDelete('Category', 'header_mobile' ,'{{ $category->id }}', 'deleted_image')"
                                                    id="delete-image-button" class="badge badge-danger ml-2" title="удалить старое изображение" >&nbsp;x&nbsp;</a>
                                                 <div>
-                                                    <img src="{{asset('/storage/images/settings/' . $category->header_mobile) }}" width="60" alt="Image">
+                                                    {{--<img src="{{asset('/storage/images/settings/' . $category->header_mobile) }}" width="60" alt="Image">--}}
+                                                    <img src="{{asset($category->header_mobile) }}" width="60" alt="Image">
                                                 </div>
                                             </div>
                                             <input type="hidden" id="deleted_image_model" name="deleted_image[model]" value="">
@@ -100,17 +101,17 @@
 
                                     <div>
                                         @if(isset($category) && (!empty($category->header_desktop)))
-                                            <div class="form-group mt-2" id="old-image-div">
+                                            <div class="form-group mt-2" id="old_div_deleted_image1">
                                                 <label for="old_img" >Старое изображение</label>
-                                                <a href="#" onclick="event.preventDefault(); imageDelete('Category', 'header_desktop' ,'{{ $category->id }}', 'another_image')"
+                                                <a href="#" onclick="event.preventDefault(); imageDelete('Category', 'header_desktop' ,'{{ $category->id }}', 'deleted_image1')"
                                                    id="delete-image-button" class="badge badge-danger ml-2" title="удалить старое изображение" >&nbsp;x&nbsp;</a>
                                                 <div>
-                                                    <img src="{{asset('/storage/images/settings/' . $category->header_desktop) }}" width="60" alt="Image">
+                                                    <img src="{{asset($category->header_desktop) }}" width="60" alt="Image">
                                                 </div>
                                             </div>
-                                            <input type="hidden" id="another_image_model" name="deleted_image1[model]" value="">
-                                            <input type="hidden" id="another_image_field" name="deleted_image1[field]" value="">
-                                            <input type="hidden" id="another_image_id" name="deleted_image1[id]" value="">
+                                            <input type="hidden" id="deleted_image1_model" name="deleted_image1[model]" value="">
+                                            <input type="hidden" id="deleted_image1_field" name="deleted_image1[field]" value="">
+                                            <input type="hidden" id="deleted_image1_id" name="deleted_image1[id]" value="">
 
                                         @endif
                                     </div>
