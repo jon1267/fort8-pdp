@@ -18,6 +18,7 @@ class JsonSeeder extends Seeder
      */
     public function run()
     {
+        set_time_limit ( 0 );
 
         $jsonData = file_get_contents('https://parfumdeparis.biz/page/json_all');
         $data = json_decode($jsonData, true);
@@ -31,7 +32,7 @@ class JsonSeeder extends Seeder
         $categories = [];
         $strNotes = '';
 
-        foreach ($data as $key => $item){
+        foreach ($data as $key => $item) {
 
             $products[$key]['sort'] = $item['sort'];
             $products[$key]['name'] = $item['name'];
@@ -42,15 +43,19 @@ class JsonSeeder extends Seeder
             $products[$key]['bname'] = $item['bname'];
             $products[$key]['filters'] = $item['filters'];
 
-            $brands[] = $item['bname'];
-            $strNotes .= ','.str_replace('.','',$item['filters']);
+            $brands[] = $item['bname']; //для табл. брендов
+            $strNotes .= ','.str_replace('.','',$item['filters']); //2 строки для табл нот
             $notes =  array_map( function ($item) {return trim($item);} , array_unique(explode(',', $strNotes)));
-
-            $noteProduct[] = explode(', ',$item['filters']);
+            $noteProduct[] = explode(', ',$item['filters']); //для связи одного продукта с его нотами
 
             // варианты
             $variants[$key]['man'] = $item['man'];
             $variants[$key]['woman'] = $item['woman'];
+            $variants[$key]['antiseptics'] = $item['antiseptics'];
+            $variants[$key]['man500'] = $item['man500'];
+            $variants[$key]['woman500'] = $item['woman500'];
+            $variants[$key]['hair_spray'] = $item['hair_spray'];
+            $variants[$key]['auto'] = $item['auto'];
 
             $variants[$key]['active_ua'] = $item['active_ua'];
             $variants[$key]['active_ru'] = $item['active_ru'];
@@ -79,6 +84,14 @@ class JsonSeeder extends Seeder
             $categories[$key]['hair_spray'] = ($item['hair_spray'] == '1') ? 5 : 0;
             $categories[$key]['woman500'] = ($item['woman500'] == '1') ? 6: 0;
             $categories[$key]['man500'] = ($item['man500'] == '1') ? 7 : 0;
+
+            // copy image from remote to local
+            try {
+                $imgData = file_get_contents('https://parfumdeparis.biz/assets/img/landing_good/'.$item['img']);
+                file_put_contents(public_path().'/images/product/'.$item['img'], $imgData);
+            } catch (\Exception $e) {
+                echo 'Copy image error: ', $e->getMessage(), '<br>';
+            }
         }
 
         //dd($products, array_unique($notes), $variants);
@@ -100,7 +113,7 @@ class JsonSeeder extends Seeder
         foreach ($products as $key => $product) {
 
             $brandId = Brand::where('name', $product['bname'])->first()->id;
-            $aromaId = 1;//его пока нет ?
+            $aromaId = 1; //его пока нет ?
             $newProduct = Product::create([
                 'aroma_id' => $aromaId,
                 'brand_id' => $brandId ?? 1,
@@ -149,7 +162,7 @@ class JsonSeeder extends Seeder
                     $newVariant[0]['art'] = $variants[$key]['art25'];
 
                     $newVariant[0]['price_ua'] = (int) $variants[$key]['price25'] ?? 0;
-                    $newVariant[0]['price_ru'] = 0; //(int) $variants[$key]['price25ru'];// ???
+                    $newVariant[0]['price_ru'] = 0; //(int) $variants[$key]['price25ru'];// price25ru нет
 
                     $newVariant[0]['active_ua'] = (int) $variants[$key]['active_ua'] ?? 0;
                     $newVariant[0]['active_ru'] = (int) $variants[$key]['active25ru'] ?? 0;
@@ -176,6 +189,34 @@ class JsonSeeder extends Seeder
                     $newVariant[2]['active_ua'] = (int) $variants[$key]['active_ua'] ?? 0;
                     $newVariant[2]['active_ru'] = (int) $variants[$key]['active100ru'] ?? 0;
                     //--------------------------------
+                }
+
+                // непонятно какие варианты брать ? (товар 341, есть разные price50 price100, art25,50,100)
+                if ($variants[$key]['antiseptics'] == '1') {
+                    $newVariant[0]['product_id'] = $newProduct->id;
+                    $newVariant[0]['name']= '100ml';
+                    $newVariant[0]['volume']= 100;
+                    $newVariant[0]['art'] = $variants[$key]['art100']; // ?
+
+                    $newVariant[0]['price_ua'] = (int) $variants[$key]['price100'] ?? 0; // ?
+                    $newVariant[0]['price_ru'] = (int) $variants[$key]['price100ru'] ?? 0; // ?
+
+                    $newVariant[0]['active_ua'] = (int) $variants[$key]['active_ua'] ?? 0; // ?
+                    $newVariant[0]['active_ru'] = (int) $variants[$key]['active25ru'] ?? 0; // ?
+                }
+
+                // непонятно какие варианты брать ? (товар 61,102, есть art/price/active 25, 50, 100)
+                if ($variants[$key]['man500'] == '1' || $variants[$key]['woman500'] == '1') {
+                    $newVariant[0]['product_id'] = $newProduct->id;
+                    $newVariant[0]['name']= '500ml';
+                    $newVariant[0]['volume']= 500;
+                    $newVariant[0]['art'] = $variants[$key]['art100']; // ?
+
+                    $newVariant[0]['price_ua'] = (int) $variants[$key]['price100'] ?? 0; // ?
+                    $newVariant[0]['price_ru'] = (int) $variants[$key]['price100ru'] ?? 0; // ?
+
+                    $newVariant[0]['active_ua'] = (int) $variants[$key]['active_ua'] ?? 0; // ?
+                    $newVariant[0]['active_ru'] = (int) $variants[$key]['active25ru'] ?? 0; // ?
                 }
 
             }

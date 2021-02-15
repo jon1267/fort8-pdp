@@ -8,16 +8,20 @@ use App\Http\Controllers\Admin\AromaController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Site\SiteController;
+use App\Http\Controllers\Site\AuctionController;
 
 
 Route::get('/', [SiteController::class, 'index'])->name('site.index');
 Route::get('/policy', [SiteController::class, 'policy'])->name('site.policy');
 Route::get('/terms', [SiteController::class, 'terms'])->name('site.terms');
+
+//отдаем json данные
+Route::get('/getNotes', [AuctionController::class, 'getNotes']);
+Route::get('/getBrand', [AuctionController::class, 'getBrand']);
+Route::get('/getManufacturer', [AuctionController::class, 'getManufacturer']);
 //Route::get('/import',[SiteController::class, 'import']);
 
 Auth::routes(['register' => false]); //Auth::routes();
-
-//Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 // вход в админку
 Route::get('/home', function () {
