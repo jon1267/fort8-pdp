@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrap();
 
-        View::composer(['admin.aromas.aromas_create', 'admin.brands.brands_create',
+        View::composer(['admin.aromas.aromas_create', 'brands.brands_create',
             'admin.products.products_create', 'admin.settings.settings',
         ], function ($view) { $view->with('userId', auth()->user()->id);
         });

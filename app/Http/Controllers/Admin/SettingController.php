@@ -90,7 +90,7 @@ class SettingController extends Controller
 
         $setting->update($data);
 
-        return redirect('home')->with(['status' => 'Настройки были обновлены']);
+        return redirect()->route('admin.settings.edit', 1)->with(['status' => 'Настройки были обновлены']);
 
     }
 

@@ -6,7 +6,7 @@
 
             <div class="row">
 
-                <div class="col-10">
+                <div class="col-12">
                     <div class="card ">
                         <div class="card-header ">
                             <h5 class="m-0">{{ (isset($product)) ? 'Обновление данных' : 'Введите данные товара' }}</h5>
@@ -63,7 +63,7 @@
                                 <div class="d-flex mt-5">
                                     <div class="form-group col-6">
                                         <label for="description">Описание товара на русском</label>
-                                        <textarea class="form-control @error('description') is-invalid @enderror" rows="2"
+                                        <textarea class="textarea @error('description') is-invalid @enderror" rows="2"
                                             id="description" name="description" placeholder="Описание товара на русском"
                                             >{{(isset($product->description)) ? $product->description : old('description')}}</textarea>
                                         @error('description')
@@ -75,7 +75,7 @@
 
                                     <div class="form-group col-6">
                                         <label for="description_ua">Описание товара на украинском</label>
-                                        <textarea class="form-control @error('description_ua') is-invalid @enderror" rows="2"
+                                        <textarea class="textarea @error('description_ua') is-invalid @enderror" rows="2"
                                             id="description_ua" name="description_ua" placeholder="Описание товара на украинском"
                                             >{{(isset($product->description_ua)) ? $product->description_ua : old('description_ua')}}</textarea>
                                         @error('description_ua')
@@ -86,6 +86,13 @@
                                     </div>
 
                                 </div>
+
+                                <!--
+                                <div class="mb-3">
+                                    <textarea class="textarea" placeholder="Place some text here"
+                                    style="width: 100%; height: 200px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;"></textarea>
+                                </div>
+                                -->
 
                                 <div class="d-flex mt-5">
 
@@ -220,7 +227,7 @@
                                         {{ (old('hide') == 1) ? ' checked ' : '' }}
                                         @isset($product) @if($product->hide == 1) checked @endif @endisset
                                         >
-                                        <label class="custom-control-label" for="product-hide">Товар отображается</label>
+                                        <label class="custom-control-label" for="product-hide">Скрыть товар</label>
                                     </div>
                                 </div>
 
@@ -332,6 +339,22 @@
                                             <strong>{{ $message }}</strong>
                                         </span>
                                         @enderror
+                                        @error('variants.*.art')
+                                        <span class="invalid-feedback" style="display: inline-block" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                        @enderror
+                                        @error('variants.*.price_ua')
+                                        <span class="invalid-feedback" style="display: inline-block" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                        @enderror
+                                        @error('variants.*.volume')
+                                        <span class="invalid-feedback" style="display: inline-block" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                        @enderror
+
                                     </div>
 
                                 </div>

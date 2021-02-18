@@ -24,6 +24,9 @@
 
     <!-- Theme style -->
     <link rel="stylesheet" href="{{ asset('template/dist/css/adminlte.min.css') }}">
+    <!-- summernote -->
+    <link rel="stylesheet" href="{{ asset('template/plugins/summernote/summernote-bs4.css') }}">
+
     <!-- Google Font: Source Sans Pro -->
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
 </head>
@@ -63,6 +66,8 @@
 
 <!-- AdminLTE App -->
 <script src="{{ asset('template/dist/js/adminlte.min.js') }}"></script>
+<!-- Summernote -->
+<script src="{{ asset('template/plugins/summernote/summernote-bs4.min.js') }}"></script>
 
 <script src="{{ asset('template/plugins/bs-custom-file-input/bs-custom-file-input.min.js') }}"></script>
 
@@ -74,6 +79,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
         bsCustomFileInput.init();
+        $('.textarea').summernote(); //this for html editor
     });
 </script>
 

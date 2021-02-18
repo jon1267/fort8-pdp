@@ -16,9 +16,9 @@
                                 Добавить аромат
                             </a>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body table-responsive p-0">
 
-                            <table class="table table-bordered table-striped table-sm " id="table">
+                            <table class="table table-hover " id="table">
                                 <tr>
                                     <th>ID</th>
                                     <th>Аромат на русском</th>

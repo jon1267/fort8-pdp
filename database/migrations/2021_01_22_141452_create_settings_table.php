@@ -15,7 +15,7 @@ class CreateSettingsTable extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
-            $table->text('analytic_code');
+            $table->text('analytic_code')->nullable();
             $table->string('header_mobile');
             $table->string('header_desktop');
             $table->unsignedTinyInteger('slider_show');

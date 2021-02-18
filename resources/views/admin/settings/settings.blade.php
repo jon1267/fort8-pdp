@@ -107,7 +107,7 @@
 
                                 <div class="form-group mt-5">
                                     <button type="submit" class="btn btn-primary"> <i class="far fa-save mr-2"></i>Сохранить настройки </button>
-                                    <a href="{{ url('home') }}" class="btn btn-info ml-2"> <i class="fas fa-sign-out-alt mr-2"></i>Отмена</a>
+                                    <a href="{{ route('admin.index') }}" class="btn btn-info ml-2"> <i class="fas fa-sign-out-alt mr-2"></i>Отмена</a>
                                 </div>
                             </form>
                             <!-- -->

@@ -33,6 +33,9 @@ class AdminProductUpdateRequest extends FormRequest
             'brand_id' => 'required|int|exists:brands,id',
             //'aroma_id' => 'required|int|exists:aromas,id',
             'variants' => 'required|array|min:1',
+            'variants.*.art' => 'required|string|max:50',
+            'variants.*.price_ua' => 'required|int',
+            'variants.*.volume' => 'nullable|numeric',
         ];
     }
 }

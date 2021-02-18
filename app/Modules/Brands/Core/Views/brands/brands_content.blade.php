@@ -16,14 +16,13 @@
                                 Добавить бренд
                             </a>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body table-responsive p-0">
 
-                            <table class="table table-bordered table-striped table-sm " id="table">
+                            <!--<table class="table table-bordered table-striped table-sm " id="table">-->
+                            <table class="table table-hover " id="table">
                                 <tr>
                                     <th>ID</th>
-                                    <th>Наименование бренда</th>
-                                    <th>Создано</th>
-                                    <th>Обновлено</th>
+                                    <th>Наименование</th>
                                     <th>Действия</th>
                                 </tr>
 
@@ -31,8 +30,6 @@
                                     <tr>
                                         <td>{{$brand->id}}</td>
                                         <td>{{$brand->name}}</td>
-                                        <td>{{ $brand->createdBy->name ?? ''}}</td>
-                                        <td>{{ $brand->updatedBy->name ?? ''}}</td>
                                         <td>
 
                                             <form action="{{ route('admin.brand.destroy', $brand) }}" class="form-inline " method="POST" id="brand-delete-{{$brand->id}}">

@@ -25,7 +25,8 @@ class CreateProductsTable extends Migration
             $table->string('img2')->nullable();
             $table->string('img3')->nullable();
             $table->unsignedTinyInteger('hide')->default(0);
-            $table->bigInteger('sort')->nullable();
+            //->index() это капец как долго (7-8 мин)... так не делать, - индексы отдельной миграцией
+            $table->unsignedBigInteger('sort')->default(0);
             $table->unsignedBigInteger('created_by_id')->nullable();
             $table->unsignedBigInteger('updated_by_id')->nullable();
             $table->timestamps();

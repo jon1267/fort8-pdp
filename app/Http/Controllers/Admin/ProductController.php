@@ -36,7 +36,7 @@ class ProductController extends Controller
     {
         return view('admin.products.products_content')->with([
             'title'=> 'Редактирование товара',
-            'products' => Product::paginate(10),
+            'products' => Product::orderBy('sort')->paginate(100),
         ]);
     }
 

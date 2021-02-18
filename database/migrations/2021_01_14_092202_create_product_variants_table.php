@@ -16,11 +16,11 @@ class CreateProductVariantsTable extends Migration
         Schema::create('product_variants', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('product_id');
-            $table->string('name');
-            $table->float('volume',8,2);
+            $table->string('name')->nullable();
+            $table->float('volume',8,2)->nullable();
             $table->string('art',50);
             $table->integer('price_ua');
-            $table->integer('price_ru');
+            $table->integer('price_ru')->nullable();
             $table->tinyInteger('active_ua')->nullable();
             $table->tinyInteger('active_ru')->nullable();
             $table->unsignedBigInteger('created_by_id')->nullable();

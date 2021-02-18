@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Modules\Brands\Core\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AdminBrandStoreRequest extends FormRequest
+class AdminBrandUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,7 +24,7 @@ class AdminBrandStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|max:255|unique:brands',
+            'name' => 'required|max:255|unique:brands,name,' . $this->brand->id,
         ];
     }
 }

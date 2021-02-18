@@ -8,41 +8,46 @@
             <div class="row">
                 <!-- /.col-md-6 -->
                 <!-- class="col-10 mx-auto"  -->
-                <div class="col-10">
+                <div class="col-12">
                     <div class="card ">
-                        <div class="card-header d-flex align-items-baseline ">
+                        <div class="card-header d-flex align-items-baseline">
                             <h5 class="m-0">Товары</h5>
                             <a href="{{ route('admin.product.create') }}" class="btn btn-primary ml-4">
                                 Добавить товар
                             </a>
-                        </div>
-                        <div class="card-body">
 
-                            <table class="table table-bordered table-striped table-sm " id="table">
+                            <div class="input-group input-group-sm ml-auto" style="width: 200px;">
+                                <input type="text" name="table_search" class="form-control float-right" placeholder="Search">
+
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="card-body table-responsive p-0">
+
+                            <!--<table class="table table-bordered table-striped table-sm " id="table">-->
+                            <table class="table table-hover " id="table">
                                 <tr>
                                     <th>ID</th>
+                                    <th>Фото</th>
                                     <th>Производитель</th>
                                     <th>Наименование</th>
-                                    <th>Описание на русском</th>
-                                    <th>Описание на украинском</th>
-                                    <th>Изображение</th>
                                     <th>Действия</th>
                                 </tr>
 
                                 @foreach($products as $product)
                                     <tr>
                                         <td>{{$product->id}}</td>
-                                        <td>{{$product->vendor}}</td>
-                                        <td>{{$product->name}}</td>
-                                        <td>{{ Str::limit($product->description) }}</td>
-                                        <td>{{ Str::limit($product->description_ua) }}</td>
                                         <td>
                                             @if(!empty($product->img))
                                                 {{-- <img src="{{asset('/storage/images/product/' . $product->img) }}" width="50"  alt="image">--}}
-                                                <img src="{{asset($product->img) }}" width="50"  alt="image">
+                                                <img src="{{asset($product->img) }}" height="50"  alt="image">
                                             @endif
                                         </td>
-
+                                        <td>{{$product->vendor}}</td>
+                                        <td>{{$product->name}}</td>
                                         <td>
 
                                             <form action="{{ route('admin.product.destroy', $product) }}" class="form-inline " method="POST" id="product-delete-{{$product->id}}">
@@ -64,7 +69,7 @@
                                 @endforeach
                             </table>
 
-                            <div class="mt-3">
+                            <div class="m-3 ">
                                 {{ $products->links() }}
                             </div>
 

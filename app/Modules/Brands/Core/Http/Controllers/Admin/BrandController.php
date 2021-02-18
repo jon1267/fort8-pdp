@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Modules\Brands\Core\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
-//use Illuminate\Http\Request;
-use App\Http\Requests\AdminBrandStoreRequest;
-use App\Http\Requests\AdminBrandUpdateRequest;
+use App\Modules\Brands\Core\Http\Requests\AdminBrandStoreRequest;
+use App\Modules\Brands\Core\Http\Requests\AdminBrandUpdateRequest;
 
 class BrandController extends Controller
 {
@@ -17,7 +16,7 @@ class BrandController extends Controller
      */
     public function index()
     {
-        return view('admin.brands.brands_content')->with([
+        return view('brands.brands_content')->with([
             'title' => 'Редактирование таблицы брендов',
             'brands' => Brand::paginate(10),
         ]);
@@ -30,9 +29,9 @@ class BrandController extends Controller
      */
     public function create()
     {
-        return view('admin.brands.brands_create')->with([
+        return view('brands.brands_create')->with([
             'title' => 'Добавить бренд',
-            'userId' => auth()->user()->id,
+            //'userId' => auth()->user()->id,
         ]);
     }
 
@@ -67,19 +66,17 @@ class BrandController extends Controller
      */
     public function edit(Brand $brand)
     {
-        return view('admin.brands.brands_create')->with([
+        return view('brands.brands_create')->with([
             'title'=> 'Редактирование бренда',
             'brand' => $brand,
-            'userId' => auth()->user()->id,
+            //'userId' => auth()->user()->id,
         ]);
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  AdminBrandUpdateRequest  $request
-     * @param  Brand  $brand
-     * @return \Illuminate\Http\Response
+     * @param AdminBrandUpdateRequest $request
+     * @param Brand $brand
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(AdminBrandUpdateRequest $request, Brand $brand)
     {
