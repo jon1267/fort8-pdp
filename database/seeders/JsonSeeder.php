@@ -8,6 +8,7 @@ use App\Models\ProductVariant;
 use App\Models\Brand;
 use App\Models\Note;
 use App\Models\Category;
+use Illuminate\Support\Str;
 
 class JsonSeeder extends Seeder
 {
@@ -34,8 +35,10 @@ class JsonSeeder extends Seeder
 
         foreach ($data as $key => $item) {
 
+            $productName = trim(str_replace(['100ml.', '500ml.'], '', $item['name']));
+
             $products[$key]['sort'] = $item['sort'];
-            $products[$key]['name'] = $item['name'];
+            $products[$key]['name'] = $productName;
             $products[$key]['description'] = $item['text'];
             $products[$key]['vendor'] = 'PdParis';
             $products[$key]['img'] = '/images/product/'.$item['img'];
@@ -87,8 +90,28 @@ class JsonSeeder extends Seeder
 
             // copy image from remote to local
             try {
+
+                //img - главное фото товара
                 $imgData = file_get_contents('https://parfumdeparis.biz/assets/img/landing_good/'.$item['img']);
-                file_put_contents(public_path().'/images/product/'.$item['img'], $imgData);
+                $imgFileName = mt_rand(11111,99999) . '-' .  Str::slug($productName) ;
+                $imgExtension = '.' . pathinfo('https://parfumdeparis.biz/assets/img/landing_good/'.$item['img'], PATHINFO_EXTENSION);
+                file_put_contents(public_path() . '/images/product/'. $imgFileName . $imgExtension, $imgData);
+                $products[$key]['img'] = '/images/product/'. $imgFileName . $imgExtension;
+
+                if ($item['man'] == '1' || $item['woman'] == '1') {
+                    //img2 фото товара
+                    $img2data = file_get_contents('http://paris-perfume.org.ua/assets/img/landing_good/' . $item['art100'] . '.png');
+                    $img2FileName =  mt_rand(11111,99999) . '-' .  Str::slug($productName).'.png';
+                    file_put_contents(public_path() . '/images/product2/' . $img2FileName, $img2data);
+                    $products[$key]['img2'] = '/images/product2/' . $img2FileName;
+
+                    //img3 фото товара
+                    $img3data = file_get_contents('https://pdparis-shop.com/assets/img/landing_good/' . $item['art100'] . '.png');
+                    $img3FileName =  mt_rand(11111,99999) . '-' .  Str::slug($productName).'.png';
+                    file_put_contents(public_path() . '/images/product3/' . $img3FileName, $img3data);
+                    $products[$key]['img3'] = '/images/product3/' . $img3FileName;
+                }
+
             } catch (\Exception $e) {
                 echo 'Copy image error: ', $e->getMessage(), '<br>';
             }
@@ -122,6 +145,8 @@ class JsonSeeder extends Seeder
                 'description' => $product['description'],
                 'sort' => $product['sort'],
                 'img' => $product['img'],
+                'img2' => $product['img2'] ?? null,
+                'img3' => $product['img3'] ?? null,
                 'hide' => $product['hide'],
             ]);
 

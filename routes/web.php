@@ -9,11 +9,13 @@ use App\Modules\Brands\Core\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Site\SiteController;
 use App\Http\Controllers\Site\AuctionController;
+use App\Modules\Aggregators\Core\Http\Controllers\AggregatorController;
 
 
 Route::get('/', [SiteController::class, 'index'])->name('site.index');
 Route::get('/policy', [SiteController::class, 'policy'])->name('site.policy');
 Route::get('/terms', [SiteController::class, 'terms'])->name('site.terms');
+//Route::get('/import',[SiteController::class, 'import']);
 
 //отдаем json данные
 Route::get('/getNotes', [AuctionController::class, 'getNotes']);
@@ -22,6 +24,9 @@ Route::get('/getAroma', [AuctionController::class, 'getAroma']);
 Route::get('/getManufacturer', [AuctionController::class, 'getManufacturer']);
 Route::get('/getFamily', [AuctionController::class, 'getFamily']);
 Route::get('/getProduct', [AuctionController::class, 'getProduct']);
+
+Route::get('/xml/prom.xml', [AggregatorController::class, 'promUa']);
+
 Auth::routes(['register' => false]); //Auth::routes();
 
 // вход в админку

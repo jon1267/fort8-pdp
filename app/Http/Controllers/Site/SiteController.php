@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class SiteController extends Controller
 {
@@ -21,4 +22,8 @@ class SiteController extends Controller
     {
         return view('site.terms');
     }
+
+    /*public function import()
+    {
+    }*/
 }
