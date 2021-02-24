@@ -7,12 +7,17 @@
     </catalog>
     <items>
         @foreach($products as $product)
-            <item id="{{ $product->id }}" selling_type="r">
+            <item id="{{ $product->id.'-'.$product->volume  }}" selling_type="r">
+                <vendor>{{ $product->vendor }}</vendor>
                 <name>{{ $product->name }}</name>
-                <categoryId>{{ $product->id }}</categoryId>
-                <description>{{ $product->description }}</description>
-                <priceuah>139</priceuah>
+                <categoryId>{{ $product->category_id }}</categoryId>
+                <description><![CDATA[{{ $product->description }}]]></description>
                 <image>{{ url('/') . $product->img2 }}</image>
+                <priceuah>{{ $product->price_ua }}</priceuah>
+                <available>склад</available>
+                <param name="Volume" unit="ml">{{ $product->volume }}</param>
+                <keywords>{{ $product->name. ', '. $product->brand . $product->notes}}</keywords>
+
             </item>
         @endforeach
     </items>

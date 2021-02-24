@@ -21,11 +21,20 @@ class AuctionController extends Controller
         $id = $request->get('id');
 
         if ($id) {
-            $data = Product::where('id', $id)->get(['id', 'vendor'])->toArray();
+            $dat = Product::where('id', $id)->get(['id', 'vendor'])->toArray();
         } else {
-            $data = Product::all(['id', 'vendor'])->toArray();
+            $dat = Product::all(['id', 'vendor'])->toArray();
         }
 
+        $data = [];
+        foreach ($dat as $item) {
+            $data[$item['id']] = [
+                [
+                    'ru' => ['name' => $item['vendor']],
+                    'ua' => ['name_ua' => $item['vendor']],
+                ]
+            ];
+        }
         return response()->json($data);
     }
 
@@ -45,8 +54,8 @@ class AuctionController extends Controller
         foreach ($dat as $item) {
             $data[$item['id']] = [
                 [
-                    'ru' => [$item['name']],
-                    'ua' => [$item['name_ua']],
+                    'ru' => ['name' => $item['name']],
+                    'ua' => ['name_ua' => $item['name_ua']],
                 ]
             ];
         }
@@ -61,9 +70,19 @@ class AuctionController extends Controller
         $id = $request->get('id');
 
         if ($id) {
-            $data = Brand::where('id', $id)->get(['id', 'name'])->toArray();
+            $dat = Brand::where('id', $id)->get(['id', 'name'])->toArray();
         } else {
-            $data = Brand::all(['id', 'name'])->toArray();
+            $dat = Brand::all(['id', 'name'])->toArray();
+        }
+
+        $data = [];
+        foreach ($dat as $item) {
+            $data[$item['id']] = [
+                [
+                    'ru' => ['b_name' => $item['name']],
+                    'ua' => ['b_name' => $item['name']],
+                ]
+            ];
         }
 
         return response()->json($data);
@@ -85,8 +104,8 @@ class AuctionController extends Controller
         foreach ($dat as $item) {
             $data[$item['id']] = [
                 [
-                    'ru' => [$item['name']],
-                    'ua' => [$item['name_ua']],
+                    'ru' => ['name' => $item['name']],
+                    'ua' => ['name_ua' => $item['name_ua']],
                 ]
             ];
         }
@@ -110,8 +129,8 @@ class AuctionController extends Controller
         foreach ($dat as $item) {
             $data[$item['id']] = [
                 [
-                    'ru' => [$item['name_ru']],
-                    'ua' => [$item['name_ua']],
+                    'ru' => ['name_ru' => $item['name_ru']],
+                    'ua' => ['name_ua' => $item['name_ua']],
                 ]
             ];
         }
@@ -127,12 +146,12 @@ class AuctionController extends Controller
 
         if ($id) {
             $dat = Product::with(['categories', 'notes'])->where('id', $id)->get([
-                'id', 'name', 'description', 'description_ua', 'img', 'img2', 'img3', 'aroma_id', 'brand_id'
+                'id', 'vendor', 'name', 'description', 'description_ua', 'img', 'img2', 'img3', 'aroma_id', 'brand_id'
             ])->toArray();
             //dd($dat);
         } else {
             $dat = Product::with(['categories', 'notes'])->get([
-                'id', 'name', 'description', 'description_ua', 'img', 'img2', 'img3', 'aroma_id', 'brand_id'
+                'id', 'vendor', 'name', 'description', 'description_ua', 'img', 'img2', 'img3', 'aroma_id', 'brand_id'
             ])->toArray();
             //dd($dat);
         }
@@ -142,19 +161,20 @@ class AuctionController extends Controller
             $data[$item['id']] = [
                 [
                     'ru' => [
-                        'name' => $item['name'],
-                        'description' => $item['description'],
+                        'p_name' => $item['name'],
+                        'descr' => $item['description'],
                     ],
 
                     'ua' => [
-                        'name' => $item['name'],
-                        'description_ua' => $item['description_ua'],
+                        'p_name' => $item['name'],
+                        'descr' => $item['description_ua'],
                     ],
                     'images' => [
-                        0 => $item['img'],
-                        1 => $item['img2'],
-                        2 => $item['img3'],
+                        0 => $item['img'] ?  url('/') . $item['img'] : null,
+                        1 => $item['img2'] ? url('/') . $item['img2'] : null,
+                        2 => $item['img3'] ? url('/') . $item['img3'] : null,
                     ],
+                    'manuf' => $item['vendor'],
                     'aroma_id' => $item['aroma_id'],
                     'brand_id' => $item['brand_id'],
                     'notes' =>  implode(', ', array_map( function ($note) {return $note['name_ru'];}, $item['notes'])),
