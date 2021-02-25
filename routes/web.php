@@ -11,8 +11,11 @@ use App\Http\Controllers\Site\SiteController;
 use App\Http\Controllers\Site\AuctionController;
 use App\Modules\Aggregators\Core\Http\Controllers\AggregatorController;
 
+// вход в админку
+Route::get('/', function () {
+    return view('admin.admin');
+})->middleware(['auth'])->name('site.index');
 
-Route::get('/', [SiteController::class, 'index'])->name('site.index');
 Route::get('/policy', [SiteController::class, 'policy'])->name('site.policy');
 Route::get('/terms', [SiteController::class, 'terms'])->name('site.terms');
 //Route::get('/import',[SiteController::class, 'import']);
