@@ -12,7 +12,13 @@ class AggregatorController extends Controller
     public function promUa()
     {
         //only categories 1 и 2 ( man & woman parfumes) (? it can be edited ...)
-        $categories = Category::whereIn('id', [1,2])->get();
+        //$categories = Category::whereIn('id', [1,2])->get();
+        $categories = [
+            0 => ['id' => 1, 'name' => 'Женская парфюмерия 50мл'],
+            1 => ['id' => 2, 'name' => 'Женская парфюмерия 100мл'],
+            2 => ['id' => 3, 'name' => 'Мужская парфюмерия 50мл'],
+            3 => ['id' => 4, 'name' => 'Мужская парфюмерия 100мл'],
+        ];
 
         //all data for create prom.ua xml-file; here only Man & Woman parfume volume 50 or 100 ml
         $prods = DB::table('product_variants')
@@ -27,8 +33,10 @@ class AggregatorController extends Controller
             ->whereIn('product_variants.volume', [50.00, 100.00])
             ->where('product_variants.active_ua', '=', 1)
             ->whereIn('category_product.category_id', [1,2])
+            ->orderBy('category_id')
+            ->orderBy('volume')
             ->get();
-        //dd($prods);
+        //dd($categories, $prods);
 
         $products =[];
         foreach ($prods as $key => $product) {
