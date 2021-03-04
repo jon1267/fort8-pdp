@@ -120,7 +120,7 @@ class NewPost
     // метод загружает справочник отделений «Новая Почта» по ссылке REF на город (населенный пункт)
     // 1-й параметр это Ref полученный из выдачи метода getSettlements() [первый параметр выдачи]
     // 2-й параметр (typeWarehouse) тип отделения новой почты (обычно почтовое отд. и грузовое отд.)
-    public function getWarehousesByRef(string $settleRef = '', string $typeWarehouse)
+    public function getWarehousesByRef(string $settleRef = '', string $typeWarehouse, int $page)
     {
         $data = [
             'apiKey' => self::API_KEY,
@@ -129,6 +129,8 @@ class NewPost
             'methodProperties' => [
                 'SettlementRef' => $settleRef,
                 'TypeOfWarehouseRef' => $typeWarehouse,
+                'Page' => $page,
+                'Limit' => 500,
             ],
         ];
 

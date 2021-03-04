@@ -12,5 +12,5 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::get('products', [ProductController::class, 'index']);
 Route::get('products/{product}', [ProductController::class, 'show']);
 
-Route::get('/novaposhta/cities/{keyword?}', [NovaPoshtaController::class, 'cities']);
-Route::get('/novaposhta/offices/{ref?}', [NovaPoshtaController::class, 'offices']);
+Route::get('/novaposhta/cities', [NovaPoshtaController::class, 'cities']);
+Route::get('/novaposhta/offices', [NovaPoshtaController::class, 'offices']);

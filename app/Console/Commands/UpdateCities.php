@@ -42,6 +42,8 @@ class UpdateCities extends Command
      */
     public function handle()
     {
+        set_time_limit ( 0 );
+
         City::truncate();
         $page = 1;
         while ($page) {
@@ -70,8 +72,10 @@ class UpdateCities extends Command
                 $result[$key]['name_ru'] = $city->DescriptionRu;
                 $result[$key]['region'] = $city->RegionsDescription;
                 $result[$key]['area'] = $city->AreaDescription;
-                $result[$key]['name'] = $city->Description . ' - ' . $city->RegionsDescription . ' - ' . $city->AreaDescription;
                 $result[$key]['type'] = $city->SettlementTypeDescription;
+                $dateTime = date('Y-m-d H:i:s');
+                $result[$key]['created_at'] = $dateTime;
+                $result[$key]['updated_at'] = $dateTime;
             }
         }
 
