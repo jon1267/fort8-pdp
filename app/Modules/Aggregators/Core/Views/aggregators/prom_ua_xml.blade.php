@@ -11,16 +11,16 @@
             <vendor>{{ $product->vendor }}</vendor>
 
             @if($product->category_id == 1 && $product->volume == 50)
-            <name>{{ $product->name .' 50 мл'}}</name>
+            <name>{{ $product->name .' 50 мл '.$categories[0]['short'] }}</name>
             <categoryId>1</categoryId>
             @elseif($product->category_id == 1 && $product->volume == 100)
-            <name>{{ $product->name .' 100 мл'}}</name>
+            <name>{{ $product->name .' 100 мл '.$categories[1]['short'] }}</name>
             <categoryId>2</categoryId>
             @elseif($product->category_id == 2 && $product->volume == 50)
-            <name>{{ $product->name .' 50 мл'}}</name>
+            <name>{{ $product->name .' 50 мл '.$categories[2]['short'] }}</name>
             <categoryId>3</categoryId>
             @elseif($product->category_id == 2 && $product->volume == 100)
-            <name>{{ $product->name .' 100 мл'}}</name>
+            <name>{{ $product->name .' 100 мл '.$categories[3]['short'] }}</name>
             <categoryId>3</categoryId>
             @endif
             <description><![CDATA[{{ $product->description }}]]></description>

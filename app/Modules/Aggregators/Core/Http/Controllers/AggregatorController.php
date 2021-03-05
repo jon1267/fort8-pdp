@@ -14,10 +14,10 @@ class AggregatorController extends Controller
         //only categories 1 и 2 ( man & woman parfumes) (? it can be edited ...)
         //$categories = Category::whereIn('id', [1,2])->get();
         $categories = [
-            0 => ['id' => 1, 'name' => 'Женская парфюмерия 50мл'],
-            1 => ['id' => 2, 'name' => 'Женская парфюмерия 100мл'],
-            2 => ['id' => 3, 'name' => 'Мужская парфюмерия 50мл'],
-            3 => ['id' => 4, 'name' => 'Мужская парфюмерия 100мл'],
+            0 => ['id' => 1, 'name' => 'Женская парфюмерия 50мл',  'short' => 'Женский парфюм'],
+            1 => ['id' => 2, 'name' => 'Женская парфюмерия 100мл', 'short' => 'Женский парфюм'],
+            2 => ['id' => 3, 'name' => 'Мужская парфюмерия 50мл',  'short' => 'Мужской парфюм'],
+            3 => ['id' => 4, 'name' => 'Мужская парфюмерия 100мл', 'short' => 'Мужской парфюм'],
         ];
 
         //all data for create prom.ua xml-file; here only Man & Woman parfume volume 50 or 100 ml

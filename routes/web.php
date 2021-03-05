@@ -18,6 +18,7 @@ Route::get('/', function () {
 
 Route::get('/policy', [SiteController::class, 'policy'])->name('site.policy');
 Route::get('/terms', [SiteController::class, 'terms'])->name('site.terms');
+Route::get('/page/json_all', [SiteController::class, 'jsonAll']);
 //Route::get('/import',[SiteController::class, 'import']);
 
 //отдаем json данные
