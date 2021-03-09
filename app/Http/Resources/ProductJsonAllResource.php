@@ -16,27 +16,71 @@ class ProductJsonAllResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'aroma_id' => $this->aroma_id,
-            'brand_id' => $this->brand_id,
-            'vendor' => $this->vendor,
-            'name' => $this->name,
-            'description' => $this->description,
-            'description_ua' => $this->description_ua,
-            'img' => $this->img,
-            'img2' => $this->img2,
-            'img3' => $this->img3,
-            'hide' => $this->hide,
-            'sort' => $this->sort,
-            'created_by_id' => $this->created_by_id,
-            'updated_by_id' => $this->updated_by_id,
-            'categories' => $this->categories->implode('id', ', '),
-            'notes' => $this->notes->implode('id', ', '),
-            'notes2' => $this->notes2->implode('id', ', '),
-            'notes3' => $this->notes3->implode('id', ', '),
-            'variants' => $this->productVariants,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
 
+            'active_ua' => $this->getVariantData($this->productVariants, 25)['active_ua'],
+            'active_ru' => $this->getVariantData($this->productVariants, 25)['active_ru'],
+
+            'sort' => $this->sort,
+            'hide' => $this->hide,
+            'art' => '',
+            'bname' => $this->brand->name,
+            'name' => $this->name,
+            'text' => $this->description,
+            'img' => $this->img,
+            'sort' => $this->sort,
+            'filters' => $this->notes->implode('name_ru', ', '), //'notes'
+            //предполагается: 1-женские парфюмы, 2-мужские, 3-антисептики, 4-автопарфюмы, 5-спреи д.волос, 6,7 годовой запас
+            //если эти 'id' меняются в таблице категорий, нужно соотв. поменять и сдесь...
+            'man' => in_array(2, $this->categories->pluck('id')->toArray()) ? '1' : '0',
+            'woman' => in_array(1, $this->categories->pluck('id')->toArray()) ? '1' : '0',
+            'auto' => in_array(4, $this->categories->pluck('id')->toArray()) ? '1' : '0',
+            'antiseptics' => in_array(3, $this->categories->pluck('id')->toArray()) ? '1' : '0',
+            'hair_spray' => in_array(5, $this->categories->pluck('id')->toArray()) ? '1' : '0',
+            'man500' => in_array(7, $this->categories->pluck('id')->toArray()) ? '1' : '0',
+            'woman500' => in_array(6, $this->categories->pluck('id')->toArray()) ? '1' : '0',
+            'price25' => $this->getVariantData($this->productVariants, 25)['price_ua'],
+            'art25' => $this->getVariantData($this->productVariants, 25)['art'],
+            'price50' => $this->getVariantData($this->productVariants, 50)['price_ua'],
+            'price50ru' => $this->getVariantData($this->productVariants, 50)['price_ru'],
+            'art50' => $this->getVariantData($this->productVariants, 50)['art'],
+            'price100' => $this->getVariantData($this->productVariants, 100)['price_ua'],
+            'price100ru' => $this->getVariantData($this->productVariants, 100)['price_ru'],
+            'art100' => $this->getVariantData($this->productVariants, 100)['art'],
+            //'variants' => $this->productVariants,
+            //'price25' => $this->productVariants,
+            //'categories' => $this->categories->implode('id', ', '),
+            //'vendor' => $this->vendor,
+            //'aroma_id' => $this->aroma_id,
+            //'img2' => $this->img2,
+            //'img3' => $this->img3,
+            //'created_by_id' => $this->created_by_id,
+            //'updated_by_id' => $this->updated_by_id,
+            //'description_ua' => $this->description_ua,
+            //'notes2' => $this->notes2->implode('id', ', '),
+            //'notes3' => $this->notes3->implode('id', ', '),
+            //'variants' => $this->productVariants,
+            //'created_at' => $this->created_at,
+            //'updated_at' => $this->updated_at,
         ];
+    }
+
+    private function getVariantData($productVariant, $volume)
+    {
+        $result['art'] = '';
+        $result['price_ua'] = $result['price_ru'] = $result['active_ua'] = $result['active_ru'] = '0';
+
+        foreach ($productVariant as $variant)
+        {
+            //dd($variant, gettype($variant));
+            if ($variant->volume == $volume) {
+                $result['art'] = $variant->art;
+                $result['price_ua'] = (string) $variant->price_ua;
+                $result['price_ru'] = (string) $variant->price_ru;
+                $result['active_ua'] = (string) $variant->active_ua;
+                $result['active_ru'] = (string) $variant->active_ru;
+            }
+        }
+
+        return $result;
     }
 }
