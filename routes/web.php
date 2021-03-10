@@ -22,12 +22,12 @@ Route::get('/page/json_all', [SiteController::class, 'jsonAll']);
 //Route::get('/import',[SiteController::class, 'import']);
 
 //отдаем json данные
-Route::get('/getNotes', [AuctionController::class, 'getNotes']);
-Route::get('/getBrand', [AuctionController::class, 'getBrand']);
-Route::get('/getAroma', [AuctionController::class, 'getAroma']);
-Route::get('/getManufacturer', [AuctionController::class, 'getManufacturer']);
-Route::get('/getFamily', [AuctionController::class, 'getFamily']);
-Route::get('/getProduct', [AuctionController::class, 'getProduct']);
+Route::get('/auction/getNotes', [AuctionController::class, 'getNotes']);
+Route::get('/auction/getBrand', [AuctionController::class, 'getBrand']);
+Route::get('/auction/getAroma', [AuctionController::class, 'getAroma']);
+Route::get('/auction/getManufacturer', [AuctionController::class, 'getManufacturer']);
+Route::get('/auction/getFamily', [AuctionController::class, 'getFamily']);
+Route::get('/auction/getProduct', [AuctionController::class, 'getProduct']);
 
 Route::get('/xml/prom.xml', [AggregatorController::class, 'promUa']);
 
