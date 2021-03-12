@@ -16,17 +16,29 @@ class ProductJsonAllResource extends JsonResource
     {
         return [
             'id' => $this->id,
-
+            'active' => '0',
             'active_ua' => $this->getVariantData($this->productVariants, 25)['active_ua'],
             'active_ru' => $this->getVariantData($this->productVariants, 25)['active_ru'],
-
+            'active25ru' => $this->getVariantData($this->productVariants, 25)['active_ru'],
+            'active50ru' => $this->getVariantData($this->productVariants, 50)['active_ru'],
+            'active100ru' => $this->getVariantData($this->productVariants, 100)['active_ru'],
+            'active_amator' => '0',
             'sort' => $this->sort,
             'hide' => $this->hide,
             'art' => '',
             'bname' => $this->brand->name,
             'name' => $this->name,
             'text' => $this->description,
-            'img' => $this->img,
+            'skidka' => '0',
+            'count' => '0',
+            'price' => '0',
+            'pricestore' => '0',
+            'price_ru' => '0',
+            'pricestore_ru' => '0',
+            'img' => str_replace('/images/product/','',$this->img),
+            'active_hit' => '0',
+            'active_action' => '0',
+            'samples' => '0',
             'sort' => $this->sort,
             'filters' => $this->notes->implode('name_ru', ', '), //'notes'
             //предполагается: 1-женские парфюмы, 2-мужские, 3-антисептики, 4-автопарфюмы, 5-спреи д.волос, 6,7 годовой запас
@@ -46,6 +58,14 @@ class ProductJsonAllResource extends JsonResource
             'price100' => $this->getVariantData($this->productVariants, 100)['price_ua'],
             'price100ru' => $this->getVariantData($this->productVariants, 100)['price_ru'],
             'art100' => $this->getVariantData($this->productVariants, 100)['art'],
+
+            // счтаем устаревшими...
+            //$upd['pricestore'] = $product['pricestore'];
+            //$upd['active_hit'] = $product['active_hit'];
+            //$upd['active_action'] = $product['active_action'];
+            //$upd['skidka'] = $product['skidka'];
+            // $upd['active'] = $product['active'];
+
             //'variants' => $this->productVariants,
             //'price25' => $this->productVariants,
             //'categories' => $this->categories->implode('id', ', '),

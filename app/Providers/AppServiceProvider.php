@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -29,6 +30,8 @@ class AppServiceProvider extends ServiceProvider
         Schema::defaultStringLength(191);
 
         Paginator::useBootstrap();
+
+        JsonResource::withoutWrapping(); //this remove data[] wrapping for json resources
 
         View::composer(['admin.aromas.aromas_create', 'brands.brands_create',
             'admin.products.products_create', 'admin.settings.settings',
