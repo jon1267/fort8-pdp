@@ -32,7 +32,7 @@ class AuctionController extends Controller
             $data[$item['id']] = [
                 [
                     'ru' => ['name' => $item['vendor']],
-                    'ua' => ['name_ua' => $item['vendor']],
+                    'ua' => ['name' => $item['vendor']],
                 ]
             ];
         }
@@ -56,7 +56,7 @@ class AuctionController extends Controller
             $data[$item['id']] = [
                 [
                     'ru' => ['name' => $item['name']],
-                    'ua' => ['name_ua' => $item['name_ua']],
+                    'ua' => ['name' => $item['name_ua']],
                 ]
             ];
         }
@@ -80,8 +80,8 @@ class AuctionController extends Controller
         foreach ($dat as $item) {
             $data[$item['id']] = [
                 [
-                    'ru' => ['b_name' => $item['name']],
-                    'ua' => ['b_name' => $item['name']],
+                    'ru' => ['name' => $item['name']],
+                    'ua' => ['name' => $item['name']],
                 ]
             ];
         }
@@ -106,7 +106,7 @@ class AuctionController extends Controller
             $data[$item['id']] = [
                 [
                     'ru' => ['name' => $item['name']],
-                    'ua' => ['name_ua' => $item['name_ua']],
+                    'ua' => ['name' => $item['name_ua']],
                 ]
             ];
         }
@@ -130,8 +130,8 @@ class AuctionController extends Controller
         foreach ($dat as $item) {
             $data[$item['id']] = [
                 [
-                    'ru' => ['name_ru' => $item['name_ru']],
-                    'ua' => ['name_ua' => $item['name_ua']],
+                    'ru' => ['name' => $item['name_ru']],
+                    'ua' => ['name' => $item['name_ua']],
                 ]
             ];
         }
@@ -184,12 +184,12 @@ class AuctionController extends Controller
                 $data[$item['id']] = [
                     [
                         'ru' => [
-                            'p_name' => $item['name'],
+                            'name' => $item['name'],
                             'descr' => $item['description'],
                         ],
 
                         'ua' => [
-                            'p_name' => $item['name'],
+                            'name' => $item['name'],
                             'descr' => $item['description_ua'],
                         ],
                         'images' => [
@@ -200,7 +200,8 @@ class AuctionController extends Controller
                         'p_price' => max($price),
                         'p_priceD' => 0,
                         'count' => 100,
-                        'manuf' => $item['vendor'],
+                        'volume' => 100,
+                        'manuf' => 1, //$item['vendor'],
                         'aroma_id' => $item['aroma_id'],
                         'brand_id' => $item['brand_id'],
                         'notes' => array_map(function ($note) {return $note['id'];}, $item['notes']),
