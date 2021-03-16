@@ -24,7 +24,7 @@ class AuctionController extends Controller
         if ($id) {
             $dat = Product::where('id', $id)->get(['id', 'vendor'])->toArray();
         } else {
-            $dat = Product::all(['id', 'vendor'])->toArray();
+            $dat = Product::all(['id', 'vendor'])->take(1)->toArray();
         }
 
         $data = [];
@@ -147,7 +147,7 @@ class AuctionController extends Controller
 
         //это при дальнейшем усложнении переделать как в AggregatorController или сервис, по данным вариантов товара ?
         if ($id) {
-            $dat = Product::with(['categories', 'notes', 'productVariants'])
+            $dat = Product::with(['categories', 'notes', 'notes2', 'notes3', 'productVariants'])
                 ->whereHas('productVariants', function ($query) {
                     $query->where([['active_ua', '=' , 1 ], ['volume', '=', 100.00] ]);
                 })
@@ -159,7 +159,7 @@ class AuctionController extends Controller
                     'id', 'vendor', 'name', 'description', 'description_ua', 'img', 'img2', 'img3', 'aroma_id', 'brand_id'
                 ])->toArray();
         } else {
-            $dat = Product::with(['categories', 'notes', 'productVariants'])
+            $dat = Product::with(['categories', 'notes', 'notes2', 'notes3', 'productVariants'])
                 ->whereHas('productVariants', function ($query) {
                     $query->where([['active_ua', '=' , 1 ], ['volume', '=', 100.00] ]);
                 })
@@ -201,11 +201,14 @@ class AuctionController extends Controller
                         'p_priceD' => 0,
                         'count' => 100,
                         'volume' => 100,
-                        'manuf' => 1, //$item['vendor'],
+                        'manuf_id' => 1, //$item['vendor'],
                         'aroma_id' => $item['aroma_id'],
                         'brand_id' => $item['brand_id'],
-                        'notes' => array_map(function ($note) {return $note['id'];}, $item['notes']),
+                        'note1' => array_map(function ($note) {return $note['id'];}, $item['notes']),
+                        'note2' => array_map(function ($note2) {return $note2['id'];}, $item['notes2']),
+                        'note3' => array_map(function ($note3) {return $note3['id'];}, $item['notes3']),
                         'categories' => array_map(function ($category) {return $category['id'];}, $item['categories']),
+                        'family' => [],
                         //'notes' =>  implode(', ', array_map( function ($note) {return $note['name_ru'];}, $item['notes'])),
                         //'categories' =>  implode(', ', array_map( function ($category) {return $category['name'];}, $item['categories'])),
                     ]
