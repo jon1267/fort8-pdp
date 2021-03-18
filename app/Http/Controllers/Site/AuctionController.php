@@ -21,11 +21,14 @@ class AuctionController extends Controller
 
         $id = $request->get('id');
 
+        // меняем подход: считаем у нас 1 vendor='PdParis'. отдаем только c id=1, и без id одна запись (тоже с id=1 :)
         if ($id) {
-            $dat = Product::where('id', $id)->get(['id', 'vendor'])->toArray();
+            $dat = ($id == 1) ? Product::where('id', $id)->get(['id', 'vendor'])->toArray() : [];
         } else {
             $dat = Product::all(['id', 'vendor'])->take(1)->toArray();
         }
+
+
 
         $data = [];
         foreach ($dat as $item) {
