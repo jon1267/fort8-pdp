@@ -10,10 +10,17 @@ use App\Models\Brand;
 use App\Models\Note;
 use App\Models\Product;
 use App\Models\Category;
+use App\Services\Sms\Sms;
 
 class AuctionController extends Controller
 {
     const API_KEY = '12345678';
+
+    private $sms;
+    public function __construct(Sms $sms)
+    {
+        $this->sms = $sms;
+    }
 
     public function getManufacturer(Request $request)
     {
@@ -219,5 +226,23 @@ class AuctionController extends Controller
             }
         }
         return response()->json($data);
+    }
+
+    //  auction - register
+    public function register(Request $request)
+    {
+        $phone = $request->phone; //$phone = '380676333474';
+        $code = mt_rand(11111, 99999);
+        $text = 'Ваш пароль для входа в аукцион: ' . $code;
+
+        $isSmsSend = $this->sms->sendSms($phone, $text);
+
+        return $isSmsSend ? ['success'=>true, 'password'=>$code] : ['success'=>false, 'password'=>0];
+
+    }
+
+    public function login(Request $request)
+    {
+
     }
 }

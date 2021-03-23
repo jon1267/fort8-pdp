@@ -29,6 +29,9 @@ Route::get('/auction/getManufacturer', [AuctionController::class, 'getManufactur
 Route::get('/auction/getFamily', [AuctionController::class, 'getFamily']);
 Route::get('/auction/getProduct', [AuctionController::class, 'getProduct']);
 
+Route::get('/auction/register', [AuctionController::class, 'register']);
+Route::get('/auction/login', [AuctionController::class, 'login']);
+
 Route::get('/xml/prom.xml', [AggregatorController::class, 'promUa']);
 
 Auth::routes(['register' => false]); //Auth::routes();
