@@ -10,6 +10,8 @@ use App\Models\Brand;
 use App\Models\Note;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Client;
+use App\Http\Requests\AuctionClientRegisterRequest;
 use App\Services\Sms\Sms;
 
 class AuctionController extends Controller
@@ -228,21 +230,50 @@ class AuctionController extends Controller
         return response()->json($data);
     }
 
-    //  auction - register
-    public function register(Request $request)
+    //  /auction/register
+    public function register(AuctionClientRegisterRequest $request)
     {
-        $phone = $request->phone; //$phone = '380676333474';
+        $username = $request->username;
+        $userphone = $request->userphone;
+
+        $userphone = phone_format($userphone);
+        if ($userphone === false) {
+            return ['success'=>false, 'reason'=>'notransport']; //may be 'reason'=>'bad phone' ?
+        }
+
+        $client = null;
+        if ($username && $userphone) {
+            $client = Client::where([
+                ['first_name', '=', $username],
+                ['phone', '=', $userphone],
+            ])->first();
+        }
+
+        if ($client) {
+            return ['success'=>false, 'reason'=>'exist'];
+        }
+
         $code = mt_rand(11111, 99999);
         $text = 'Ваш пароль для входа в аукцион: ' . $code;
+        $isSmsSend = $this->sms->sendSms($userphone, $text);
 
-        $isSmsSend = $this->sms->sendSms($phone, $text);
+        if (!$isSmsSend) {
+            return ['success'=>false, 'reason'=>'notransport'];
+        }
 
-        return $isSmsSend ? ['success'=>true, 'password'=>$code] : ['success'=>false, 'password'=>0];
+        Client::create([
+            'first_name' => $username,
+            'phone' => $userphone,
+        ]);
+
+        return ['success'=>true, 'password'=>$code];
 
     }
 
     public function login(Request $request)
     {
-
+        $phone1 = '+38 (067) 655-19-52';
+        $phone2 = phone_format($phone1);
+        dd($phone1, $phone2);
     }
 }
