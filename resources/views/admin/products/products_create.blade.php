@@ -361,6 +361,46 @@
 
                                 <div id="add-variants-div" class="add-variants-div"></div>
 
+                                <!-- add auction fields  -->
+                                <div class="d-flex mt-5">
+                                    <div class="form-group col-4">
+                                        <label for="vendor">Цена для Аукциона</label>
+                                        <input class="form-control @error('auction_price') is-invalid @enderror" type="text"
+                                               id="auction_price" name="auction_price" placeholder="Цена аукциона"
+                                               value="{{(isset($product->auction_price)) ? $product->auction_price : old('auction_price')}}">
+                                        @error('auction_price')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="form-group col-4">
+                                        <label for="vendor">Цена для Аукциона min</label>
+                                        <input class="form-control @error('auction_price') is-invalid @enderror" type="text"
+                                               id="auction_price_min" name="auction_price_min" placeholder="Цена аукциона min"
+                                               value="{{(isset($product->auction_price_min)) ? $product->auction_price_min : old('auction_price_min')}}">
+                                        @error('auction_price_min')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="form-group col-4">
+                                        <label>Участие в аукционе</label>
+                                        <div class="custom-control custom-checkbox">
+                                            <input class="custom-control-input" name="auction_show" type="checkbox" value="1" id="auction_show"
+                                                   {{ (old('auction_show') == 1) ? ' checked ' : '' }}
+                                                   @isset($product) @if($product->auction_show == 1) checked @endif @endisset
+                                            >
+                                            <label class="custom-control-label" for="auction_show">добавить в аукцион</label>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <!-- end auction fields -->
+
                                 <div class="d-flex mt-5">
                                     <div class="form-group col-4">
                                         <label>Ноты</label>

@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Client;
 use App\Http\Requests\AuctionClientRegisterRequest;
+use App\Http\Requests\AuctionClientLoginRequest;
 use App\Services\Sms\Sms;
 
 class AuctionController extends Controller
@@ -168,7 +169,8 @@ class AuctionController extends Controller
                 })
                 ->where('id', $id)
                 ->get([
-                    'id', 'vendor', 'name', 'description', 'description_ua', 'img', 'img2', 'img3', 'aroma_id', 'brand_id'
+                    'id', 'vendor', 'name', 'description', 'description_ua', 'img', 'img2', 'img3', 'aroma_id',
+                    'brand_id', 'auction_price', 'auction_price_min', 'auction_show'
                 ])->toArray();
         } else {
             $dat = Product::with(['categories', 'notes', 'notes2', 'notes3', 'productVariants'])
@@ -179,19 +181,20 @@ class AuctionController extends Controller
                     $query->whereIn('categories.id', [1,2]);
                 })
                 ->get([
-                    'id', 'vendor', 'name', 'description', 'description_ua', 'img', 'img2', 'img3', 'aroma_id', 'brand_id'
+                    'id', 'vendor', 'name', 'description', 'description_ua', 'img', 'img2', 'img3', 'aroma_id',
+                    'brand_id', 'auction_price', 'auction_price_min', 'auction_show'
                 ])->toArray();
         }
         //dd($dat);
 
         $data = [];
         foreach ($dat as $item) {
-            if (is_array($item) && count($item)) {
+            if (is_array($item) && count($item) && $item['auction_show']) {
 
-                $price = array_map( function ($priceUa) {
+                /*$price = array_map( function ($priceUa) {
                     return ($priceUa['active_ua'] == 1 && $priceUa['volume'] == 100) ? $priceUa['price_ua'] : 0;},
                     $item['product_variants']
-                );
+                );*/
 
                 $data[$item['id']] = [
                     [
@@ -209,8 +212,8 @@ class AuctionController extends Controller
                             //1 => $item['img2'] ? url('/') . $item['img2'] : null,
                             //2 => $item['img3'] ? url('/') . $item['img3'] : null,
                         ],
-                        'p_price' => max($price),
-                        'p_priceD' => 0,
+                        'p_price'  => $item['auction_price'],//max($price),
+                        'p_priceD' => $item['auction_price_min'], //0,
                         'count' => 100,
                         'volume' => 100,
                         'manuf_id' => 1, //$item['vendor'],
@@ -233,12 +236,14 @@ class AuctionController extends Controller
     //  /auction/register
     public function register(AuctionClientRegisterRequest $request)
     {
+        if ($request->key !== self::API_KEY) abort(404);
+
         $username = $request->username;
         $userphone = $request->userphone;
 
         $userphone = phone_format($userphone);
         if ($userphone === false) {
-            return ['success'=>false, 'reason'=>'notransport']; //may be 'reason'=>'bad phone' ?
+            return response()->json(['success'=>false, 'reason'=>'notransport']); //may be 'reason'=>'bad phone' ?
         }
 
         $client = null;
@@ -250,7 +255,7 @@ class AuctionController extends Controller
         }
 
         if ($client) {
-            return ['success'=>false, 'reason'=>'exist'];
+            return response()->json(['success'=>false, 'reason'=>'exist']);
         }
 
         $code = mt_rand(11111, 99999);
@@ -258,7 +263,7 @@ class AuctionController extends Controller
         $isSmsSend = $this->sms->sendSms($userphone, $text);
 
         if (!$isSmsSend) {
-            return ['success'=>false, 'reason'=>'notransport'];
+            return response()->json(['success'=>false, 'reason'=>'notransport']);
         }
 
         Client::create([
@@ -266,14 +271,20 @@ class AuctionController extends Controller
             'phone' => $userphone,
         ]);
 
-        return ['success'=>true, 'password'=>$code];
-
+        return response()->json(['success'=>true, 'password'=>$code]);
     }
 
-    public function login(Request $request)
+    // /auction/login
+    public function login(AuctionClientLoginRequest $request)
     {
-        $phone1 = '+38 (067) 655-19-52';
-        $phone2 = phone_format($phone1);
-        dd($phone1, $phone2);
+        if ($request->key !== self::API_KEY) abort(404);
+
+        $userphone = phone_format($request->userphone);
+
+        $client = Client::where('phone', $userphone)->first();
+
+        if ($client) return response()->json(['status' => 10]);
+
+        return  response()->json(['status' => 1]);
     }
 }

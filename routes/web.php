@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Site\SiteController;
 use App\Http\Controllers\Site\AuctionController;
 use App\Modules\Aggregators\Core\Http\Controllers\AggregatorController;
+use App\Http\Middleware\VerifyCsrfToken;
 
 // вход в админку
 Route::get('/', function () {
@@ -29,8 +30,11 @@ Route::get('/auction/getManufacturer', [AuctionController::class, 'getManufactur
 Route::get('/auction/getFamily', [AuctionController::class, 'getFamily']);
 Route::get('/auction/getProduct', [AuctionController::class, 'getProduct']);
 
-Route::get('/auction/register', [AuctionController::class, 'register']);
-Route::get('/auction/login', [AuctionController::class, 'login']);
+//->withoutMiddleware() need for Yii2 can use this POST route
+Route::post('/auction/register', [AuctionController::class, 'register'])
+    ->withoutMiddleware([VerifyCsrfToken::class]);
+Route::post('/auction/login', [AuctionController::class, 'login'])
+    ->withoutMiddleware([VerifyCsrfToken::class]);
 
 Route::get('/xml/prom.xml', [AggregatorController::class, 'promUa']);
 

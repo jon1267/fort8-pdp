@@ -19,7 +19,7 @@ class Sms
     //const TURBO_SMS_URL   = 'https://api.turbosms.ua/message/ping.json'; // PING - PONG OK.
     const TURBO_SMS_URL   = 'https://api.turbosms.ua/message/send.json';
     const TURBO_SMS_TOKEN = 'c96addf19b5965a869c8df1e17d758d1413c167b';
-    const TURBO_SMS_SENDER = 'ParfDeParis ';
+    const TURBO_SMS_SENDER = 'ParfDeParis';
 
     public function sendSms(string $phone = null, string $text = null)
     {
@@ -48,6 +48,6 @@ class Sms
             $isSendSuccess = true;
         }
 
-        return $isSendSuccess;
+        return $isSendSuccess; //$result; for full diagnostic from turbosms.ua
     }
 }

@@ -24,7 +24,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('update:cities')->cron('0 */12 * * *'); // every 12 hours
+        $schedule->command('update:offices')->cron('0 */12 * * *'); // every 12 hours
     }
 
     /**
