@@ -37,6 +37,8 @@ Route::post('/auction/login', [AuctionController::class, 'login'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
 
 Route::get('/xml/prom.xml', [AggregatorController::class, 'promUa']);
+Route::get('/xml/google-local', [AggregatorController::class, 'googleLocal']);
+Route::get('/xml/google-original', [AggregatorController::class, 'googleOriginal']);
 
 Auth::routes(['register' => false]); //Auth::routes();
 

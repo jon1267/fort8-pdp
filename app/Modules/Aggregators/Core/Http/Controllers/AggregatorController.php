@@ -6,61 +6,50 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
+use App\Services\Xml\Data;
 
 class AggregatorController extends Controller
 {
-    public function promUa()
+    private $xmlData;
+    private $categories;
+
+    public function __construct(Data $xmlData)
     {
-        //only categories 1 и 2 ( man & woman parfumes) (? it can be edited ...)
-        //$categories = Category::whereIn('id', [1,2])->get();
-        $categories = [
+        $this->xmlData = $xmlData;
+        $this->categories = [
             0 => ['id' => 1, 'name' => 'Женская парфюмерия 50мл',  'short' => 'Женский парфюм'],
             1 => ['id' => 2, 'name' => 'Женская парфюмерия 100мл', 'short' => 'Женский парфюм'],
             2 => ['id' => 3, 'name' => 'Мужская парфюмерия 50мл',  'short' => 'Мужской парфюм'],
             3 => ['id' => 4, 'name' => 'Мужская парфюмерия 100мл', 'short' => 'Мужской парфюм'],
         ];
+    }
 
+    public function promUa()
+    {
+        //only categories 1 и 2 ( man & woman parfumes) (? it can be edited ...)
+        //$categories = Category::whereIn('id', [1,2])->get();
         //all data for create prom.ua xml-file; here only Man & Woman parfume volume 50 or 100 ml
-        $prods = DB::table('product_variants')
-            ->leftJoin('products', 'product_variants.product_id', '=', 'products.id')
-            ->leftJoin('category_product', 'products.id', '=', 'category_product.product_id')
-            ->leftJoin('brands', 'products.brand_id', '=', 'brands.id')
-            ->select(
-                'products.id', 'products.vendor', 'products.name as name', 'products.description', 'products.img2',
-                'product_variants.name as variant', 'product_variants.volume as volume','product_variants.active_ua',
-                'product_variants.price_ua', 'category_product.category_id as category_id', 'brands.name as brand'
-            )
-            ->whereIn('product_variants.volume', [50.00, 100.00])
-            ->where('product_variants.active_ua', '=', 1)
-            ->whereIn('category_product.category_id', [1,2])
-            ->orderBy('category_id')
-            ->orderBy('volume')
-            ->get();
-        //dd($categories, $prods);
-
-        $products =[];
-        foreach ($prods as $key => $product) {
-            $noteStr = $this->getProductNotes($product->id);
-            $products[$key] = $product;
-            $products[$key]->notes = $noteStr;
-        }
-        //dd($products);
 
         return response()->view('aggregators.prom_ua_xml', [
-            'products' => $products,
-            'categories' => $categories
+            'products' => $this->xmlData->products(),
+            'categories' => $this->categories,
         ])->header('Content-Type', 'text/xml');
     }
 
-    private function getProductNotes(int $productId)
+    //
+    public function googleLocal()
     {
-        $product = Product::where('id', $productId)->first();
-        $noteStr = '';
-        if ($product->notes) {
-            foreach ($product->notes as $note) {
-                $noteStr .= ', ' . $note->name_ru;
-            }
-        }
-        return $noteStr;
+        return response()->view('aggregators.google_local_xml', [
+            'products' => $this->xmlData->products(),
+            'categories' => $this->categories,
+        ])->header('Content-Type', 'text/xml');
+    }
+
+    public function googleOriginal()
+    {
+        return response()->view('aggregators.google_original_xml', [
+            'products' => $this->xmlData->products(),
+            'categories' => $this->categories,
+        ])->header('Content-Type', 'text/xml');
     }
 }
