@@ -287,4 +287,72 @@ class AuctionController extends Controller
 
         return  response()->json(['status' => 1]);
     }
+
+    // /auction/change-pass
+    // тут с AuctionClientLoginRequest ошибки нет, тк в нем есть userphone и key
+    public function changePass(AuctionClientLoginRequest $request)
+    {
+        // если key не тот - 404
+        if ($request->key !== self::API_KEY) abort(404);
+
+        // прогоняем телефон через фильтр. если false - невалидный телефон
+        $userphone = phone_format($request->userphone);
+        if ($userphone === false) {
+            return response()->json(['success'=>false, 'reason'=>'notransport']); //may be 'reason'=>'bad phone' ?
+        }
+
+        $client = null;
+        if ($userphone) {
+            $client = Client::where('phone', '=', $userphone)->first();
+        }
+
+        if (!$client) {
+            return response()->json(['success'=>false, 'reason'=>'notransport']);// ? 'phone not exist'
+        }
+
+        $code = mt_rand(11111, 99999);
+        $text = 'Ваш код подтверждения смены пароля: ' . $code;
+        $isSmsSend = $this->sms->sendSms($userphone, $text);
+
+        if (!$isSmsSend) {
+            return response()->json(['success'=>false, 'reason'=>'notransport']);
+        }
+
+        return response()->json(['success'=>true, 'password'=>$code]);
+    }
+
+    // /auction/change-phone
+    // с AuctionClientLoginRequest ошибки нет, там есть и userphone и key
+    public function changePhone(AuctionClientLoginRequest $request)
+    {
+        // если key не тот - 404
+        if ($request->key !== self::API_KEY) abort(404);
+
+        // прогоняем телефон через фильтр. если false - невалидный телефон
+        $userphone = phone_format($request->userphone);
+        if ($userphone === false) {
+            return response()->json(['success'=>false, 'reason'=>'notransport']); //may be 'reason'=>'bad phone' ?
+        }
+
+        $client = null;
+        if ($userphone) {
+            $client = Client::where('phone', '=', $userphone)->first();
+        }
+
+        if (!$client) {
+            return response()->json(['success'=>false, 'reason'=>'notransport']); // ? 'phone not exist'
+        }
+
+        $code = mt_rand(11111, 99999);
+        $text = 'Ваш код подтверждения на смену телефона: ' . $code;
+        $isSmsSend = $this->sms->sendSms($userphone, $text);
+
+        if (!$isSmsSend) {
+            return response()->json(['success'=>false, 'reason'=>'notransport']);
+        }
+
+        // а нужно делать update старого номера на новый ??? (если да, то здесь)
+
+        return response()->json(['success'=>true, 'password'=>$code]);
+    }
 }

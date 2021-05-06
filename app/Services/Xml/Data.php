@@ -35,8 +35,27 @@ class Data
         //dd($prods);
 
         $products =[];
+        //$newMainNotes = 'Основные ноты';//'Основные аккорды'
+        $newStartNote = 'Начальная нота';
+        $newHeartNote = 'Нота сердца';
+        $newFinishNote = 'Конечная нота';
+        $newMiddleNote = 'Нота сердца';
+        $newFinalNote = 'Конечная нота';
+        $newNoBr = '';
+        $new = [$newStartNote, $newHeartNote, $newFinishNote, $newMiddleNote, $newFinalNote,$newNoBr];
+
+        //$oldMainNotes = 'Основные аккорды';
+        $oldStartNote = 'Верхние ноты';
+        $oldHeartNote = 'Ноты сердца';
+        $oldFinishNote = 'Базовая нота';
+        $oldMiddleNote = 'Средние ноты';
+        $oldFinalNote = 'Базовые ноты';
+        $oldBrPresent = '<br />';
+        $old = [$oldStartNote, $oldHeartNote, $oldFinishNote, $oldMiddleNote, $oldFinalNote, $oldBrPresent];
+
         foreach ($prods as $key => $product) {
             $noteStr = $this->getProductNotes($product->id);
+            $product->description = str_replace($old, $new, $product->description);
             $products[$key] = $product;
             $products[$key]->notes = $noteStr;
         }

@@ -36,6 +36,32 @@ class AggregatorController extends Controller
         ])->header('Content-Type', 'text/xml');
     }
 
+    /*public function changeDescription()
+{
+    //$newMainNotes = 'Основные ноты';//'Основные аккорды'
+    $newStartNote = 'Начальная нота';
+    $newHeartNote = 'Нота сердца';
+    $newFinishNote = 'Конечная нота';
+    $new = [$newStartNote, $newHeartNote, $newFinishNote];
+
+    //$oldMainNotes = 'Основные аккорды';
+    $oldStartNote = 'Верхние ноты';
+    $oldHeartNote = 'Ноты сердца';
+    $oldFinishNote = 'Базовая нота';
+    $old = [$oldStartNote, $oldHeartNote, $oldFinishNote];
+
+    $descriptions = Product::where('description', 'LIKE', '%'.$oldStartNote.'%')
+        ->get()
+        ->map(function ($item) use($old, $new) {
+            $item->description = str_replace($old, $new, $item->description);
+            $item->save();
+            return $item;
+        });
+
+    //dd($descriptions);//nixera ne vidno, but it work :)
+    return true;
+}*/
+
     //
     public function googleLocal()
     {

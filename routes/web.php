@@ -31,14 +31,20 @@ Route::get('/auction/getFamily', [AuctionController::class, 'getFamily']);
 Route::get('/auction/getProduct', [AuctionController::class, 'getProduct']);
 
 //->withoutMiddleware() need for Yii2 can use this POST route
+//вижу повторы пробовал group, но withoutMiddle() на группе кидает ошибку и работает только для 1-го роута
 Route::post('/auction/register', [AuctionController::class, 'register'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
 Route::post('/auction/login', [AuctionController::class, 'login'])
+    ->withoutMiddleware([VerifyCsrfToken::class]);
+Route::post('/auction/changePass', [AuctionController::class, 'changePass'])
+    ->withoutMiddleware([VerifyCsrfToken::class]);
+Route::post('/auction/changePhone', [AuctionController::class, 'changePhone'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
 
 Route::get('/xml/prom.xml', [AggregatorController::class, 'promUa']);
 Route::get('/xml/google-local', [AggregatorController::class, 'googleLocal']);
 Route::get('/xml/google-original', [AggregatorController::class, 'googleOriginal']);
+
 
 Auth::routes(['register' => false]); //Auth::routes();
 
