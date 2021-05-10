@@ -12,7 +12,7 @@ class Product extends Model
     protected $fillable = [
         'aroma_id', 'brand_id' ,'vendor', 'name', 'description', 'description_ua',
         'img', 'img2', 'img3', 'hide', 'sort' ,'created_by_id', 'updated_by_id',
-        'auction_price', 'auction_price_min', 'auction_show'
+        'auction_price', 'auction_price_min', 'auction_show', 'auction_new', 'auction_rating'
     ];
 
     public function categories()

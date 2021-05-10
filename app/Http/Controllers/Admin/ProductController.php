@@ -75,7 +75,13 @@ class ProductController extends Controller
         $notes2 = $request->notes2;
         $notes3 = $request->notes3;
         $rawVariants = $request->only('variants');
-        //dd($data);
+
+        //поля для аукциона
+        $data['auction_price'] = $request->auction_price ?? 0;
+        $data['auction_price_min'] = $request->auction_price_min ?? 0;
+        $data['auction_show'] = $request->auction_show ?? 0;
+        $data['auction_new'] = $request->auction_new ?? 0;
+        $data['auction_rating'] = $request->auction_rating ?? 5;
 
         $product = Product::create($data);
         $product->categories()->sync($categories);
@@ -152,6 +158,20 @@ class ProductController extends Controller
             $data['img3'] = null;
         }
 
+        //есть глюк: если меняется значение auction_show с 1 -> 0 то update не проходит (остается 1) ? ...
+        //if (!isset($request->auction_show)) {
+        //    $data['auction_show'] = 0;
+        //}
+        //if (!isset($request->auction_new)) {
+        //    $data['auction_new'] = 0;
+        //} //dd($data);
+        //поля для аукциона
+        $data['auction_price'] = $request->auction_price ?? 0;
+        $data['auction_price_min'] = $request->auction_price_min ?? 0;
+        $data['auction_show'] = $request->auction_show ?? 0;
+        $data['auction_new'] = $request->auction_new ?? 0;
+        $data['auction_rating'] = $request->auction_rating ?? 5;
+
         $product->update($data);
         $product->categories()->sync($categories);
         $product->notes()->sync($notes);
@@ -193,19 +213,4 @@ class ProductController extends Controller
         return redirect()->route('admin.product.index')
             ->with(['status' => 'Данные успешно удалены']);
     }
-
-    /**
-     * тк это вызывается с JS(ajax) то неудобно внедрять php объект, работаем с $product->id
-     */
-    /*public function deleteProductImage($productId)
-    {
-        $product = Product::where('id', $productId)->first();
-
-        if ($product) {
-            Storage::delete('/public/images/' . $product->img);
-            $product->update(['img' => '']);
-        }
-
-        return response()->json(['success' => true]);
-    }*/
 }

@@ -17,7 +17,9 @@ class AuctionPriceSeeder extends Seeder
         $productAuctionPrices = [
             'auction_price' => 425,
             'auction_price_min' => 390,
-            'auction_show' => 1
+            'auction_show' => 1,
+            'auction_new' => 0,
+            'auction_rating' => 5,
         ];
 
         // $addAuction contain count updated records

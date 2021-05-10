@@ -288,7 +288,7 @@ class AuctionController extends Controller
         return  response()->json(['status' => 1]);
     }
 
-    // /auction/change-pass
+    // route: /auction/changePass (post request with key & phone)
     // тут с AuctionClientLoginRequest ошибки нет, тк в нем есть userphone и key
     public function changePass(AuctionClientLoginRequest $request)
     {
@@ -298,7 +298,7 @@ class AuctionController extends Controller
         // прогоняем телефон через фильтр. если false - невалидный телефон
         $userphone = phone_format($request->userphone);
         if ($userphone === false) {
-            return response()->json(['success'=>false, 'reason'=>'notransport']); //may be 'reason'=>'bad phone' ?
+            return response()->json(['success'=>false, 'reason'=>'bad phone']); //old 'reason'=>'notransport' ?
         }
 
         $client = null;
@@ -307,11 +307,11 @@ class AuctionController extends Controller
         }
 
         if (!$client) {
-            return response()->json(['success'=>false, 'reason'=>'notransport']);// ? 'phone not exist'
+            return response()->json(['success'=>false, 'reason'=>'client not exist']);//old 'reason'=>'notransport'
         }
 
         $code = mt_rand(11111, 99999);
-        $text = 'Ваш код подтверждения смены пароля: ' . $code;
+        $text = 'Ваш код подтверждения на смену пароля: ' . $code;
         $isSmsSend = $this->sms->sendSms($userphone, $text);
 
         if (!$isSmsSend) {
@@ -321,7 +321,7 @@ class AuctionController extends Controller
         return response()->json(['success'=>true, 'password'=>$code]);
     }
 
-    // /auction/change-phone
+    // route: /auction/changePhone (post request with key & phone)
     // с AuctionClientLoginRequest ошибки нет, там есть и userphone и key
     public function changePhone(AuctionClientLoginRequest $request)
     {
@@ -331,7 +331,7 @@ class AuctionController extends Controller
         // прогоняем телефон через фильтр. если false - невалидный телефон
         $userphone = phone_format($request->userphone);
         if ($userphone === false) {
-            return response()->json(['success'=>false, 'reason'=>'notransport']); //may be 'reason'=>'bad phone' ?
+            return response()->json(['success'=>false, 'reason'=>'bad phone']); //old 'reason'=>'notransport'
         }
 
         $client = null;
@@ -340,7 +340,7 @@ class AuctionController extends Controller
         }
 
         if (!$client) {
-            return response()->json(['success'=>false, 'reason'=>'notransport']); // ? 'phone not exist'
+            return response()->json(['success'=>false, 'reason'=>'client not exist']); //old 'reason'=>'notransport'
         }
 
         $code = mt_rand(11111, 99999);
@@ -350,8 +350,6 @@ class AuctionController extends Controller
         if (!$isSmsSend) {
             return response()->json(['success'=>false, 'reason'=>'notransport']);
         }
-
-        // а нужно делать update старого номера на новый ??? (если да, то здесь)
 
         return response()->json(['success'=>true, 'password'=>$code]);
     }
