@@ -29,6 +29,7 @@ Route::get('/auction/getAroma', [AuctionController::class, 'getAroma']);
 Route::get('/auction/getManufacturer', [AuctionController::class, 'getManufacturer']);
 Route::get('/auction/getFamily', [AuctionController::class, 'getFamily']);
 Route::get('/auction/getProduct', [AuctionController::class, 'getProduct']);
+Route::get('/auction/import', [AuctionController::class, 'import']);
 
 //->withoutMiddleware() need for Yii2 can use this POST route
 //вижу повторы пробовал group, но withoutMiddle() на группе кидает ошибку и работает только для 1-го роута

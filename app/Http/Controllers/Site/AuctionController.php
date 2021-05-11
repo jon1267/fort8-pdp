@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
+use App\Models\ProductVariant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Models\Aroma;
@@ -14,6 +15,7 @@ use App\Models\Client;
 use App\Http\Requests\AuctionClientRegisterRequest;
 use App\Http\Requests\AuctionClientLoginRequest;
 use App\Services\Sms\Sms;
+use App\Services\Import\Csv;
 
 class AuctionController extends Controller
 {
@@ -352,5 +354,34 @@ class AuctionController extends Controller
         }
 
         return response()->json(['success'=>true, 'password'=>$code]);
+    }
+
+    // import auction data from scv file (art, name, auction_price, auction_price_min)
+    public function import()
+    {
+        $auctionData = Csv::parseCsv(public_path('src\auction_price.csv'), ';');
+        //dd($auctionData);
+
+        $i = 0;
+        foreach ($auctionData as $item) {
+            $variant = ProductVariant::with('product')->where('art', $item['art'])->first();
+            if ($variant) {
+                //dd($variant->product);
+                $variant->product()->update([
+                    'auction_price' => $item['auction_price'],
+                    'auction_price_min' => $item['auction_price_min'],
+                    'auction_show' => 1,
+                ]);
+                $i++;
+            }
+        }
+
+        return $i;
+
+        //код ниже: использ. в ларином элокенте регулярки типа W065, W127, M005 (артикулы парфюмов)
+        /*$variants = ProductVariant::where('art', 'regexp', '^[WM0-9]{4}$')->get([
+            'product_id', 'name', 'volume' , 'art', 'price_ua','active_ua'
+        ])->toArray();*/
+        //dd($variants);
     }
 }
