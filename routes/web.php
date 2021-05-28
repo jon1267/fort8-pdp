@@ -29,17 +29,22 @@ Route::get('/auction/getAroma', [AuctionController::class, 'getAroma']);
 Route::get('/auction/getManufacturer', [AuctionController::class, 'getManufacturer']);
 Route::get('/auction/getFamily', [AuctionController::class, 'getFamily']);
 Route::get('/auction/getProduct', [AuctionController::class, 'getProduct']);
-Route::get('/auction/import', [AuctionController::class, 'import']);
+//Route::get('/auction/import', [AuctionController::class, 'import']);
 
-//->withoutMiddleware() need for Yii2 can use this POST route
+//->withoutMiddleware() need for we can use this POST route without csrf token (from Yii2 for example)
 //вижу повторы пробовал group, но withoutMiddle() на группе кидает ошибку и работает только для 1-го роута
 Route::post('/auction/register', [AuctionController::class, 'register'])
+    ->withoutMiddleware([VerifyCsrfToken::class]);
+Route::post('/auction/registerConfirm', [AuctionController::class, 'registerConfirm'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
 Route::post('/auction/login', [AuctionController::class, 'login'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
 Route::post('/auction/changePass', [AuctionController::class, 'changePass'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
 Route::post('/auction/changePhone', [AuctionController::class, 'changePhone'])
+    ->withoutMiddleware([VerifyCsrfToken::class]);
+// /auction/send-cart
+Route::post('/auction/sendCart', [AuctionController::class, 'sendCart'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
 
 Route::get('/xml/prom.xml', [AggregatorController::class, 'promUa']);

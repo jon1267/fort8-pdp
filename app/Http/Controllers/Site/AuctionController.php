@@ -14,8 +14,11 @@ use App\Models\Category;
 use App\Models\Client;
 use App\Http\Requests\AuctionClientRegisterRequest;
 use App\Http\Requests\AuctionClientLoginRequest;
+use App\Http\Requests\AuctionSendCartRequest;
+use App\Http\Requests\AuctionSetDiscountRequest;
 use App\Services\Sms\Sms;
 use App\Services\Import\Csv;
+use Illuminate\Support\Facades\Http;
 
 class AuctionController extends Controller
 {
@@ -256,24 +259,56 @@ class AuctionController extends Controller
             ])->first();
         }
 
-        if ($client) {
+        // клиент существует, и active = 1
+        if ($client && $client->active) {
             return response()->json(['success'=>false, 'reason'=>'exist']);
+        }
+
+        // клиент существует, но active = 0
+        if ($client &&  (!$client->active)) {
+            $code = mt_rand(11111, 99999);
+            $text = 'Ваш пароль для входа в аукцион: ' . $code;
+            $isSmsSend = $this->sms->sendSms($userphone, $text);
+            if (!$isSmsSend) {
+                return response()->json(['success'=>false, 'reason'=>'notransport']);
+            }
+            return response()->json(['success'=>true, 'password'=>$code]);
         }
 
         $code = mt_rand(11111, 99999);
         $text = 'Ваш пароль для входа в аукцион: ' . $code;
         $isSmsSend = $this->sms->sendSms($userphone, $text);
-
         if (!$isSmsSend) {
             return response()->json(['success'=>false, 'reason'=>'notransport']);
         }
 
+        // создаем запись в табл clients (active = 0 by default)
         Client::create([
             'first_name' => $username,
             'phone' => $userphone,
         ]);
 
         return response()->json(['success'=>true, 'password'=>$code]);
+    }
+
+    // route: /auction/registerConfirm (post request with key & phone)
+    // AuctionClientLoginRequest ошибки нет, тк это просто FormRequest с userphone и key
+    public function registerConfirm(AuctionClientLoginRequest $request)
+    {
+        if ($request->key !== self::API_KEY) abort(404);
+        $userphone = phone_format($request->userphone);
+
+        if ($userphone === false) {
+            return response()->json(['success'=>false, 'reason'=>'notransport']); //may be 'reason'=>'bad phone' ?
+        }
+
+        $client = Client::where('phone', $userphone)->first();
+
+        if ($client) {
+            $client->update(['active' => 1]);
+            return response()->json(['success'=>true, 'reason'=>'successfully activated']);
+        }
+        return response()->json(['success'=>false, 'reason'=>'client not exist']);
     }
 
     // /auction/login
@@ -285,7 +320,7 @@ class AuctionController extends Controller
 
         $client = Client::where('phone', $userphone)->first();
 
-        if ($client) return response()->json(['status' => 10]);
+        if ($client && $client->active) return response()->json(['status' => 10]);
 
         return  response()->json(['status' => 1]);
     }
@@ -308,8 +343,9 @@ class AuctionController extends Controller
             $client = Client::where('phone', '=', $userphone)->first();
         }
 
-        if (!$client) {
-            return response()->json(['success'=>false, 'reason'=>'client not exist']);//old 'reason'=>'notransport'
+        //нет клиента или он неактивен
+        if (!$client || (!$client->active)) {
+            return response()->json(['success'=>false, 'reason'=>'client not exist or not active']);//old 'reason'=>'notransport'
         }
 
         $code = mt_rand(11111, 99999);
@@ -341,8 +377,9 @@ class AuctionController extends Controller
             $client = Client::where('phone', '=', $userphone)->first();
         }
 
-        if (!$client) {
-            return response()->json(['success'=>false, 'reason'=>'client not exist']); //old 'reason'=>'notransport'
+        //нет клиента или он неактивен
+        if (!$client || (!$client->active)) {
+            return response()->json(['success'=>false, 'reason'=>'client not exist or not active']); //old 'reason'=>'notransport'
         }
 
         $code = mt_rand(11111, 99999);
@@ -356,32 +393,37 @@ class AuctionController extends Controller
         return response()->json(['success'=>true, 'password'=>$code]);
     }
 
-    // import auction data from scv file (art, name, auction_price, auction_price_min)
-    public function import()
+    // route /auction/sendCart
+    public function sendCart(AuctionSendCartRequest $request)
     {
-        $auctionData = Csv::parseCsv(public_path('src\auction_price.csv'), ';');
-        //dd($auctionData);
+        if ($request->key !== self::API_KEY) abort(404);
 
-        $i = 0;
-        foreach ($auctionData as $item) {
-            $variant = ProductVariant::with('product')->where('art', $item['art'])->first();
-            if ($variant) {
-                //dd($variant->product);
-                $variant->product()->update([
-                    'auction_price' => $item['auction_price'],
-                    'auction_price_min' => $item['auction_price_min'],
-                    'auction_show' => 1,
-                ]);
-                $i++;
-            }
-        }
+        $data=[];
+        $data['phone'] = $request->userphone;
+        $data['idorder'] = $request->orderid;
+        $data['name']  = $request->name.' '.$request->lastname;
+        $data['city']  = $request->city;
+        //$data['phone'] = $request->phone;// ???
+        $data['email']  = $request->email;
+        $data['sum'] = $request->partnersum;
+        $data['mess']  = $request->paymethod.'-'.$request->discount;
+        $data['adres'] = $request->postoffice;
+        $data['adv']  = 335;
+        return response()->json($data);
 
-        return $i;
+        // guzzle http request (via Laravel facade Http)
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ])
+            ->post('http://kleopatra0707.com/getorderlanding', $data);
 
-        //код ниже: использ. в ларином элокенте регулярки типа W065, W127, M005 (артикулы парфюмов)
-        /*$variants = ProductVariant::where('art', 'regexp', '^[WM0-9]{4}$')->get([
-            'product_id', 'name', 'volume' , 'art', 'price_ua','active_ua'
-        ])->toArray();*/
-        //dd($variants);
+        dd($response, $response->body());
+    }
+
+    // route /auction/setDiscount
+    public function setDiscount(AuctionSetDiscountRequest $request)
+    {
+
     }
 }
