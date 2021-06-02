@@ -23,8 +23,8 @@ use Illuminate\Support\Facades\Http;
 class AuctionController extends Controller
 {
     const API_KEY = '12345678';
-
     private $sms;
+
     public function __construct(Sms $sms)
     {
         $this->sms = $sms;
@@ -42,8 +42,6 @@ class AuctionController extends Controller
         } else {
             $dat = Product::all(['id', 'vendor'])->take(1)->toArray();
         }
-
-
 
         $data = [];
         foreach ($dat as $item) {
@@ -221,6 +219,7 @@ class AuctionController extends Controller
                         'p_priceD' => $item['auction_price_min'], //0,
                         'count' => 100,
                         'volume' => 100,
+                        'art' => $item['product_variants'][2]['art'] ?? '',
                         'manuf_id' => 1, //$item['vendor'],
                         'aroma_id' => $item['aroma_id'],
                         'brand_id' => $item['brand_id'],
@@ -398,32 +397,90 @@ class AuctionController extends Controller
     {
         if ($request->key !== self::API_KEY) abort(404);
 
-        $data=[];
-        $data['phone'] = $request->userphone;
+        $url = 'http://kleopatra0707.com/getorderlanding';
+        $data = [];
+
+        $userphone = phone_format($request->userphone);
+        $client = Client::where('phone', $userphone)->first();
+        if ($client) {
+            $data['client_id'] = $client->id;
+        }
+        $data['phone'] = $userphone;
         $data['idorder'] = $request->orderid;
         $data['name']  = $request->name.' '.$request->lastname;
         $data['city']  = $request->city;
-        //$data['phone'] = $request->phone;// ???
         $data['email']  = $request->email;
         $data['sum'] = $request->partnersum;
         $data['mess']  = $request->paymethod.'-'.$request->discount;
         $data['adres'] = $request->postoffice;
         $data['adv']  = 335;
-        return response()->json($data);
+        $data['auction'] = 1;
+        //return response()->json($data);
 
-        // guzzle http request (via Laravel facade Http)
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-        ])
-            ->post('http://kleopatra0707.com/getorderlanding', $data);
+        $response = $this->request($url, $data);
 
-        dd($response, $response->body());
+        if (ctype_digit($response)) {
+            $out = ['success' => 1, 'orderId' => $response];
+        } else {
+            $out = ['success' => 0, 'reason' => $response];
+        }
+
+        return response()->json($out);
     }
 
     // route /auction/setDiscount
     public function setDiscount(AuctionSetDiscountRequest $request)
     {
+        if ($request->key !== self::API_KEY) abort(404);
 
+        $url =  'http://kleopatra0707.com/api/promocode';
+        $data = [
+            //'promocode' => $this->request->getPost('promocode'),
+            //'site'      => $this->request->getPost('site'),
+            //какие поля ??? у нас: строка промокода и сайт. тут userphone & code ?
+            'userphone' => $request->userphone,
+            'code' => $request->code,
+        ];
+        return response()->json($data);
+
+        $response = $this->request($url, $data);
+
+        return response()->json($response);
+    }
+    // route /auction/checkSum
+    public function checkSum(AuctionClientLoginRequest $request)
+    {
+        if ($request->key !== self::API_KEY) abort(404);
+
+        $url = '';//имхо на http://kleopatra0707.com/api/...~checksum  надо это создать
+        //$data = $request->all();
+
+        //$response = $this->request($url, $request->all());
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ])->post($url, $request->all());
+
+        dd($response, $response->body());
+        // обработать $response, вернуть что надо
+
+    }
+    // route /auction/getOrders
+    public function getOrders(Request $request)
+    {
+        if ($request->key !== self::API_KEY) abort(404);
+    }
+
+    // post curl
+    private function request(string $url, array $data)
+    {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        return $result;
     }
 }

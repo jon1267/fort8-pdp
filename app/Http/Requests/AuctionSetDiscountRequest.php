@@ -24,8 +24,8 @@ class AuctionSetDiscountRequest extends FormRequest
     public function rules()
     {
         return [
-            'userphone' => 'required|max:15',
             'key' => 'required',
+            'userphone' => 'required|max:15',
             'code' => 'required',
         ];
     }

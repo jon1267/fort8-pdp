@@ -43,8 +43,13 @@ Route::post('/auction/changePass', [AuctionController::class, 'changePass'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
 Route::post('/auction/changePhone', [AuctionController::class, 'changePhone'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
-// /auction/send-cart
 Route::post('/auction/sendCart', [AuctionController::class, 'sendCart'])
+    ->withoutMiddleware([VerifyCsrfToken::class]);
+Route::post('/auction/setDiscount', [AuctionController::class, 'setDiscount'])
+    ->withoutMiddleware([VerifyCsrfToken::class]);
+Route::post('/auction/checkSum', [AuctionController::class, 'checkSum'])
+    ->withoutMiddleware([VerifyCsrfToken::class]);
+Route::post('/auction/getOrders', [AuctionController::class, 'getOrders'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
 
 Route::get('/xml/prom.xml', [AggregatorController::class, 'promUa']);
