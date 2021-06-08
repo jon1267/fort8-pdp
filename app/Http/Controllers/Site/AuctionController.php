@@ -173,7 +173,7 @@ class AuctionController extends Controller
                 ->where('id', $id)
                 ->get([
                     'id', 'vendor', 'name', 'description', 'description_ua', 'img', 'img2', 'img3', 'aroma_id',
-                    'brand_id', 'auction_price', 'auction_price_min', 'auction_show'
+                    'brand_id', 'auction_price', 'auction_price_min', 'auction_show', 'auction_new', 'auction_rating'
                 ])->toArray();
         } else {
             $dat = Product::with(['categories', 'notes', 'notes2', 'notes3', 'productVariants'])
@@ -185,7 +185,7 @@ class AuctionController extends Controller
                 })
                 ->get([
                     'id', 'vendor', 'name', 'description', 'description_ua', 'img', 'img2', 'img3', 'aroma_id',
-                    'brand_id', 'auction_price', 'auction_price_min', 'auction_show'
+                    'brand_id', 'auction_price', 'auction_price_min', 'auction_show', 'auction_new', 'auction_rating'
                 ])->toArray();
         }
         //dd($dat);
@@ -220,6 +220,9 @@ class AuctionController extends Controller
                         'count' => 100,
                         'volume' => 100,
                         'art' => $item['product_variants'][2]['art'] ?? '',
+                        'new' => $item['auction_new'],
+                        'rating' => $item['auction_rating'],
+                        'active' => $item['auction_show'],
                         'manuf_id' => 1, //$item['vendor'],
                         'aroma_id' => $item['aroma_id'],
                         'brand_id' => $item['brand_id'],
@@ -415,6 +418,20 @@ class AuctionController extends Controller
         $data['adres'] = $request->postoffice;
         $data['adv']  = 335;
         $data['auction'] = 1;
+
+        $auctionProducts=[];
+        if (is_array($request->products)) {
+            foreach ($request->products as $product) {
+                $auctionProducts[] = [
+                    'art' => $product['product_id'],
+                    'qty' => $product['count'],
+                    'price' => $product['price'],
+                    'volume' => 100,
+                ];
+            }
+        }
+
+        $data['product'] = json_encode($auctionProducts);
         //return response()->json($data);
 
         $response = $this->request($url, $data);

@@ -25,17 +25,22 @@ class AuctionSendCartRequest extends FormRequest
     {
         return [
             'key' => 'required',
-            'userphone' => 'required|max:15',//? надо ли проверять, что он существует в табл. clients
+            'userphone' => 'required|max:15',
             'name'  => 'required|max:255',
             'lastname'  => 'required|max:255',
             'city'  => 'required|max:255',
             'postoffice'  => 'required|max:255',
-            'phone'  => 'required|max:15',//? есть userphone
+            'phone'  => 'required|max:15',//? есть же userphone
             'email'  => 'required|email',
             'paymethod' => 'required',
             'discount' => 'required',
             'partnersum' => 'required',
-            'orderid' => 'required'
+            'orderid' => 'required',
+
+            'products' => "required|array|min:1",
+            "products.*.product_id"  => "required",
+            "products.*.count"  => "required",
+            "products.*.price"  => "required",
         ];
     }
 }

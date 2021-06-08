@@ -47,7 +47,7 @@ class UpdateAuctionPrices extends Command
      */
     public function handle()
     {
-        $auctionData = Csv::parseCsv(public_path('src\auction_price.csv'), ';');
+        $auctionData = Csv::parseCsv(public_path('src'. DIRECTORY_SEPARATOR .'auction_price.csv'), ';');
         //dd($auctionData);
 
         $i = 0;
