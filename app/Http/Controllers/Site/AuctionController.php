@@ -451,41 +451,84 @@ class AuctionController extends Controller
         if ($request->key !== self::API_KEY) abort(404);
 
         $url =  'http://kleopatra0707.com/api/promocode';
+
         $data = [
-            //'promocode' => $this->request->getPost('promocode'),
-            //'site'      => $this->request->getPost('site'),
-            //какие поля ??? у нас: строка промокода и сайт. тут userphone & code ?
-            'userphone' => $request->userphone,
-            'code' => $request->code,
+            'promocode' => $request->promocode,
+            'site' =>  'auction', //$request->site,
         ];
-        return response()->json($data);
 
-        $response = $this->request($url, $data);
+        $response = json_decode($this->request($url, $data), true);
 
-        return response()->json($response);
+        if (is_array($response) && count($response) && isset($response['procent'])) {
+            return response()->json(['sum'=> $response['procent']]);
+        }
+
+        return response()->json(['success' => 0, 'reason' => 'Discount not found']);
     }
+
     // route /auction/checkSum
     public function checkSum(AuctionClientLoginRequest $request)
     {
         if ($request->key !== self::API_KEY) abort(404);
 
-        $url = '';//имхо на http://kleopatra0707.com/api/...~checksum  надо это создать
-        //$data = $request->all();
+        $userphone = phone_format($request->userphone);
+        $client = Client::where('phone', $userphone)->first();
 
-        //$response = $this->request($url, $request->all());
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-        ])->post($url, $request->all());
+        // клиента нет, или он неактивен false ... иначе возвращаем sum
+        if (!$client || (!$client->active)) {
+            $out = ['success'=>false, 'reason'=>'client not exist or not active'];
+        } else {
+            $out = ['sum' => $client->sum];
+        }
 
-        dd($response, $response->body());
-        // обработать $response, вернуть что надо
-
+        return response()->json($out);
     }
+
     // route /auction/getOrders
     public function getOrders(Request $request)
     {
         if ($request->key !== self::API_KEY) abort(404);
+
+        $url = 'http://kleopatra0707.com/api/auction/orders?';
+        $data = [];
+        $data['key'] = $request->key;
+
+        $userphone = phone_format($request->userphone);
+        $client = Client::where('phone', $userphone)->first();
+        if ($client) {
+            $data['client_id'] = $client->id;
+        }
+
+        //нет клиента или он неактивен
+        if (!$client || (!$client->active)) {
+            return response()->json(['success'=>false, 'reason'=>'client not exist or not active']);
+        }
+
+        if (isset($request->order_id)) {
+            $data['order_id'] = $request->order_id;
+        }
+
+        $out = json_decode(file_get_contents($url . http_build_query($data)));
+
+        return response()->json($out); //dd($out);
+    }
+
+    // route /auction/getPayStatusList
+    public function getPayStatusList(Request $request)
+    {
+        if ($request->key !== self::API_KEY) abort(404);
+
+        return response()->json([0=>'Оплата наложенным платежом',1=>'Оплата онлайн']);
+    }
+
+    // route /auction/getOrderStatusList
+    public function getOrderStatusList(Request $request)
+    {
+        if ($request->key !== self::API_KEY) abort(404);
+
+        $out = [];
+
+        return response()->json($out);
     }
 
     // post curl

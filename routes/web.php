@@ -49,8 +49,9 @@ Route::post('/auction/setDiscount', [AuctionController::class, 'setDiscount'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
 Route::post('/auction/checkSum', [AuctionController::class, 'checkSum'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
-Route::post('/auction/getOrders', [AuctionController::class, 'getOrders'])
-    ->withoutMiddleware([VerifyCsrfToken::class]);
+Route::get('/auction/getOrders', [AuctionController::class, 'getOrders']);
+Route::get('/auction/getPayStatusList',  [AuctionController::class, 'getPayStatusList']);
+Route::get('/auction/getOrderStatusList',  [AuctionController::class, 'getOrderStatusList']);
 
 Route::get('/xml/prom.xml', [AggregatorController::class, 'promUa']);
 Route::get('/xml/google-local', [AggregatorController::class, 'googleLocal']);

@@ -25,8 +25,8 @@ class AuctionSetDiscountRequest extends FormRequest
     {
         return [
             'key' => 'required',
-            'userphone' => 'required|max:15',
-            'code' => 'required',
+            'promocode' => 'required|max:15',
+            //'site' => 'required',
         ];
     }
 }
