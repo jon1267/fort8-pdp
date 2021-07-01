@@ -413,11 +413,11 @@ class AuctionController extends Controller
         $data['name']  = $request->name.' '.$request->lastname;
         $data['city']  = $request->city;
         $data['email']  = $request->email;
-        $data['sum'] = $request->partnersum;
         $data['mess']  = $request->paymethod.'-'.$request->discount;
         $data['adres'] = $request->postoffice;
         $data['adv']  = 335;
         $data['auction'] = 1;
+        $data['sum'] = 0;
 
         $auctionProducts=[];
         if (is_array($request->products)) {
@@ -428,8 +428,16 @@ class AuctionController extends Controller
                     'price' => $product['price'],
                     'volume' => 100,
                 ];
+
+                $data['sum'] += (int)$product['count'] * (int)$product['price'];
             }
         }
+
+        if (isset($request->discount) && ($request->discount) != 0) {
+            $data['sum'] = $data['sum'] - $request->discount;
+            $data['mess'] = 'Скидка на заказ '. $request->discount. ' грн.';
+        }
+
 
         $data['product'] = json_encode($auctionProducts);
         //return response()->json($data);
@@ -518,7 +526,12 @@ class AuctionController extends Controller
     {
         if ($request->key !== self::API_KEY) abort(404);
 
-        return response()->json([0=>'Оплата наложенным платежом',1=>'Оплата онлайн']);
+        $out = [
+            ['id' => 0, 'name'=> 'Оплата наложенным платежом'],
+            ['id' => 1, 'name'=> 'Оплата онлайн'],
+        ];
+
+        return response()->json($out);
     }
 
     // route /auction/getOrderStatusList
@@ -526,7 +539,9 @@ class AuctionController extends Controller
     {
         if ($request->key !== self::API_KEY) abort(404);
 
-        $out = [];
+        $url = 'http://kleopatra0707.com/api/auction/statuses?key='.self::API_KEY;
+
+        $out = json_decode(file_get_contents($url));
 
         return response()->json($out);
     }

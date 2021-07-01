@@ -31,7 +31,7 @@ class AuctionSendCartRequest extends FormRequest
             'city'  => 'required|max:255',
             'postoffice'  => 'required|max:255',
             'phone'  => 'required|max:15',//? есть же userphone
-            'email'  => 'required|email',
+            'email'  => 'nullable|email',
             'paymethod' => 'required',
             'discount' => 'required',
             'partnersum' => 'required',
