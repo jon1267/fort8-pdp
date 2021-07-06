@@ -85,7 +85,6 @@
 
                 <li class="nav-item">
                     <a href="{{ route('admin.product.index') }}" class="nav-link">
-                        <!--<i class="fas fa-bullhorn nav-icon"></i>-->
                         <i class="fas fa-apple-alt nav-icon"></i>
                         <p>Товары</p>
                     </a>
@@ -94,8 +93,6 @@
                 <li class="nav-item">
                     <a href="{{ route('admin.settings.edit', 1 ) }}" class="nav-link">
                         <i class="fas fa-cog nav-icon"></i>
-                        <!--<i class="fas fa-tools nav-icon"></i>-->
-                        <!--<i class="fas fa-wrench nav-icon"></i>-->
                         <p>Настройки</p>
                     </a>
                 </li>
@@ -106,6 +103,14 @@
                         <!--<i class="fas fa-tools nav-icon"></i>-->
                         <!--<i class="fas fa-wrench nav-icon"></i>-->
                         <p>НП Фопы</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ route('admin.adv.index') }}" class="nav-link">
+                        <i class="fas fa-feather-alt nav-icon"></i>
+                        <!--<i class="fas fa-puzzle-piece nav-icon"></i>-->
+                        <p>Advs</p>
                     </a>
                 </li>
 

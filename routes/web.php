@@ -12,6 +12,7 @@ use App\Http\Controllers\Site\AuctionController;
 use App\Modules\Aggregators\Core\Http\Controllers\AggregatorController;
 use App\Http\Middleware\VerifyCsrfToken;
 use App\Modules\Fops\Core\Http\Controllers\Admin\FopController;
+use App\Modules\Advs\Core\Http\Controllers\Admin\AdvController;
 
 // вход в админку
 Route::get('/', function () {
@@ -75,5 +76,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::resource('product', ProductController::class)->except(['show']);
     Route::resource('settings', SettingController::class)->only(['edit','update']);
     Route::resource('fop', FopController::class)->except(['show']);
+    Route::resource('adv', AdvController::class)->except(['show']);
 
 });
