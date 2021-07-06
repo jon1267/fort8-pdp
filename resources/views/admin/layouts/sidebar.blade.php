@@ -101,6 +101,15 @@
                 </li>
 
                 <li class="nav-item">
+                    <a href="{{ route('admin.fop.index') }}" class="nav-link">
+                        <i class="fas fa-user-tie nav-icon"></i>
+                        <!--<i class="fas fa-tools nav-icon"></i>-->
+                        <!--<i class="fas fa-wrench nav-icon"></i>-->
+                        <p>НП Фопы</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
 
                     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                         @csrf

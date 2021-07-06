@@ -35,6 +35,7 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer(['admin.aromas.aromas_create', 'brands.brands_create',
             'admin.products.products_create', 'admin.settings.settings',
+            'fops.fops_create',
         ], function ($view) { $view->with('userId', auth()->user()->id);
         });
     }
