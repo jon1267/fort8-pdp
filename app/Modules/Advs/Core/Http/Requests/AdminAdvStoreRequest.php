@@ -25,6 +25,7 @@ class AdminAdvStoreRequest extends FormRequest
     {
         return [
             'name' => 'required|max:255|unique:advs',
+            'sort' => 'nullable|integer',
         ];
     }
 }

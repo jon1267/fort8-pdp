@@ -25,7 +25,7 @@ class AdminAdvUpdateRequest extends FormRequest
     {
         return [
             'name' => 'required|max:255|unique:advs,name,' . $this->adv->id,
-            //'name' => 'required|max:255',
+            'sort' => 'nullable|integer',
         ];
     }
 }
