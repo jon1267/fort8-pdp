@@ -115,6 +115,14 @@
                 </li>
 
                 <li class="nav-item">
+                    <a href="{{ route('admin.operator.index') }}" class="nav-link">
+                        <i class="fas fa-headphones nav-icon"></i>
+                        <!--<i class="fas fa-puzzle-piece nav-icon"></i>-->
+                        <p>Операторы</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
 
                     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                         @csrf

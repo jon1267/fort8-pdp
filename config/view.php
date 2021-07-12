@@ -19,6 +19,7 @@ return [
         app_path('Modules/Aggregators/Core/Views'),
         app_path('Modules/Fops/Core/Views'),
         app_path('Modules/Advs/Core/Views'),
+        app_path('Modules/Operators/Core/Views'),
     ],
 
     /*

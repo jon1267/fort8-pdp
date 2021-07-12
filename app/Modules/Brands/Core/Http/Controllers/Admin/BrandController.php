@@ -4,8 +4,8 @@ namespace App\Modules\Brands\Core\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
-use App\Modules\Brands\Core\Http\Requests\AdminBrandStoreRequest;
-use App\Modules\Brands\Core\Http\Requests\AdminBrandUpdateRequest;
+use App\Modules\Brands\Core\Http\Requests\AdminOperatorStoreRequest;
+use App\Modules\Brands\Core\Http\Requests\AdminOperatorUpdateRequest;
 
 class BrandController extends Controller
 {
@@ -38,9 +38,9 @@ class BrandController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  AdminBrandStoreRequest  $request
+     * @param  AdminOperatorStoreRequest  $request
      */
-    public function store(AdminBrandStoreRequest $request)
+    public function store(AdminOperatorStoreRequest $request)
     {
         Brand::create($request->except('_token'));
 
@@ -74,11 +74,11 @@ class BrandController extends Controller
     }
 
     /**
-     * @param AdminBrandUpdateRequest $request
+     * @param AdminOperatorUpdateRequest $request
      * @param Brand $brand
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(AdminBrandUpdateRequest $request, Brand $brand)
+    public function update(AdminOperatorUpdateRequest $request, Brand $brand)
     {
         $brand->update($request->except('_token', '_method'));
 

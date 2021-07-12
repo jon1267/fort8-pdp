@@ -13,6 +13,7 @@ use App\Modules\Aggregators\Core\Http\Controllers\AggregatorController;
 use App\Http\Middleware\VerifyCsrfToken;
 use App\Modules\Fops\Core\Http\Controllers\Admin\FopController;
 use App\Modules\Advs\Core\Http\Controllers\Admin\AdvController;
+use App\Modules\Operators\Core\Http\Controllers\Admin\OperatorController;
 
 // вход в админку
 Route::get('/', function () {
@@ -77,5 +78,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::resource('settings', SettingController::class)->only(['edit','update']);
     Route::resource('fop', FopController::class)->except(['show']);
     Route::resource('adv', AdvController::class)->except(['show']);
+    Route::resource('operator', OperatorController::class)->except(['show']);
 
 });
