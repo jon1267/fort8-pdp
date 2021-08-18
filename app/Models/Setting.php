@@ -10,6 +10,6 @@ class Setting extends Model
     use HasFactory;
 
     protected $fillable = [
-        'analytic_code', 'header_mobile', 'header_desktop', 'slider_show', 'created_by_id', 'updated_by_id'
+        'analytic_code', 'header_mobile', 'header_desktop', 'slider_show', 'auction_comment_price' ,'created_by_id', 'updated_by_id'
     ];
 }

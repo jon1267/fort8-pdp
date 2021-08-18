@@ -30,7 +30,7 @@ class OperatorController extends Controller
     public function create()
     {
         return view('operators.operators_create')->with([
-            'title' => 'Добавить бренд',
+            'title' => 'Добавить оператора',
         ]);
     }
 

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
+use App\Models\ClientProduct;
 use App\Models\ProductVariant;
+use App\Models\Setting;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Models\Aroma;
@@ -16,6 +18,8 @@ use App\Http\Requests\AuctionClientRegisterRequest;
 use App\Http\Requests\AuctionClientLoginRequest;
 use App\Http\Requests\AuctionSendCartRequest;
 use App\Http\Requests\AuctionSetDiscountRequest;
+use App\Http\Requests\AuctionAddCommentRequest;
+use App\Modules\Clients\Core\Jobs\SaveClientSumHistory;
 use App\Services\Sms\Sms;
 use App\Services\Import\Csv;
 use Illuminate\Support\Facades\Http;
@@ -544,6 +548,41 @@ class AuctionController extends Controller
         $out = json_decode(file_get_contents($url));
 
         return response()->json($out);
+    }
+
+    // route /auction/addComment
+    public function addComment(AuctionAddCommentRequest $request)
+    {
+        if ($request->key !== self::API_KEY) abort(404);
+
+        $data = [];
+        $data['client_id']  = $request->client_id;
+        $data['product_id'] = $request->product_id;
+        $auctionCommentPrice = Setting::find(1)->auction_comment_price;
+
+        $client = Client::where('id', $data['client_id'])->first();
+
+        if (!$client || (!$client->active)) {
+            return response()->json(['success'=>false, 'reason'=>'client not exist or not active']);
+        }
+
+        $clientProduct = ClientProduct::where('client_id', $data['client_id'])
+            ->where('product_id', $data['product_id'])->first();
+
+        // в табл ClientProduct добавить [client_id, product_id] если таких нет, и не добавлять если есть...
+        if (!$clientProduct) {
+            ClientProduct::create($data);
+            $client->update(['sum'=> ($client->sum + $auctionCommentPrice) ]);
+            SaveClientSumHistory::dispatch([
+                'client_id' => $data['client_id'],
+                'note' => 'Зачисление за добавление комментария на товар ID ' . $data['product_id'],
+                'amount' => $auctionCommentPrice,
+            ]);
+
+            return response()->json(['success'=>true, 'reason'=>'Data was added successfully']);
+        }
+
+        return response()->json(['success'=>false, 'reason'=>'This data already exist']);
     }
 
     // post curl

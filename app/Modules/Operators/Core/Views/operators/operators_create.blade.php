@@ -26,7 +26,7 @@
                                 <div class="form-group">
                                     <label for="name">Наименование оператора</label>
                                     <input class="form-control @error('name') is-invalid @enderror" type="text"
-                                           id="name" name="name" placeholder="Введите наименование бренда"
+                                           id="name" name="name" placeholder="Введите наименование оператора"
                                            value="{{(isset($operator->name)) ? $operator->name : old('name')}}">
                                     @error('name')
                                     <span class="invalid-feedback" role="alert">

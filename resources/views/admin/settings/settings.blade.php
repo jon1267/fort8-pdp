@@ -97,12 +97,24 @@
 
                                 </div>
 
-                                <div class="form-group mt-5">
+                                <div class="form-group ">
                                     <div class="custom-control custom-switch">
                                         <input type="checkbox" class="custom-control-input" id="slider_show" name="slider_show"
                                                value="1" {{ (isset($setting) && $setting->slider_show == 1) ? ' checked ' : '' }}>
                                         <label class="custom-control-label" for="slider_show" >Показывать (не показывать) слайдер</label>
                                     </div>
+                                </div>
+
+                                <div class="form-group col-8 mt-5">
+                                    <label for="name">Сумма за комментирование товара</label>
+                                    <input class="form-control @error('auction_comment_price') is-invalid @enderror" type="text"
+                                           id="auction_comment_price" name="auction_comment_price"
+                                           value="{{(isset($setting->auction_comment_price)) ? $setting->auction_comment_price : old('auction_comment_price')}}">
+                                    @error('auction_comment_price')
+                                    <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                                 </div>
 
                                 <div class="form-group mt-5">

@@ -24,8 +24,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('update:cities')->cron('0 */12 * * *'); // every 12 hours
-        $schedule->command('update:offices')->cron('0 */12 * * *'); // every 12 hours
+        $schedule->command('update:cities')->daily(); // Run the task every day at midnight
+        $schedule->command('update:offices')->daily(); //->cron('0 */12 * * *'); // every 12 hours
     }
 
     /**
