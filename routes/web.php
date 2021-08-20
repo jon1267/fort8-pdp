@@ -58,6 +58,7 @@ Route::post('/auction/addComment', [AuctionController::class, 'addComment'])
 Route::get('/auction/getOrders', [AuctionController::class, 'getOrders']);
 Route::get('/auction/getPayStatusList',  [AuctionController::class, 'getPayStatusList']);
 Route::get('/auction/getOrderStatusList',  [AuctionController::class, 'getOrderStatusList']);
+Route::get('/auction/getClientBalance', [AuctionController::class, 'getClientBalance']);
 
 Route::get('/xml/prom.xml', [AggregatorController::class, 'promUa']);
 Route::get('/xml/google-local', [AggregatorController::class, 'googleLocal']);

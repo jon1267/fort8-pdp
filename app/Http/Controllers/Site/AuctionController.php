@@ -19,6 +19,7 @@ use App\Http\Requests\AuctionClientLoginRequest;
 use App\Http\Requests\AuctionSendCartRequest;
 use App\Http\Requests\AuctionSetDiscountRequest;
 use App\Http\Requests\AuctionAddCommentRequest;
+use App\Http\Requests\AuctionClientBalanceRequest;
 use App\Modules\Clients\Core\Jobs\SaveClientSumHistory;
 use App\Services\Sms\Sms;
 use App\Services\Import\Csv;
@@ -556,15 +557,18 @@ class AuctionController extends Controller
         if ($request->key !== self::API_KEY) abort(404);
 
         $data = [];
-        $data['client_id']  = $request->client_id;
         $data['product_id'] = $request->product_id;
-        $auctionCommentPrice = Setting::find(1)->auction_comment_price;
-
-        $client = Client::where('id', $data['client_id'])->first();
+        $userphone = phone_format($request->userphone);
+        $client = Client::where('phone', $userphone)->first();
+        if ($client) {
+            $data['client_id'] = $client->id;
+        }
 
         if (!$client || (!$client->active)) {
             return response()->json(['success'=>false, 'reason'=>'client not exist or not active']);
         }
+
+        $auctionCommentPrice = Setting::find(1)->auction_comment_price;
 
         $clientProduct = ClientProduct::where('client_id', $data['client_id'])
             ->where('product_id', $data['product_id'])->first();
@@ -583,6 +587,22 @@ class AuctionController extends Controller
         }
 
         return response()->json(['success'=>false, 'reason'=>'This data already exist']);
+    }
+
+    // route /auction/getClientBalance
+    public function getClientBalance(AuctionClientBalanceRequest $request)
+    {
+        if ($request->key !== self::API_KEY) abort(404);
+
+        $userphone = phone_format($request->userphone);
+        $client = Client::where('phone', $userphone)->first();
+
+        //нет клиента или он неактивен
+        if (!$client || (!$client->active)) {
+            return response()->json(['success'=>false, 'reason'=>'client not exist or not active']);
+        }
+
+        return response()->json(['success' => true, 'balance' => $client->sum ]);
     }
 
     // post curl

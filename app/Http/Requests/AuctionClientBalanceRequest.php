@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AuctionAddCommentRequest extends FormRequest
+class AuctionClientBalanceRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,9 +25,7 @@ class AuctionAddCommentRequest extends FormRequest
     {
         return [
             'key' => 'required',
-            //'client_id' => 'required|exists:clients,id',
             'userphone' => 'required|max:15',
-            'product_id' => 'required',
         ];
     }
 }
