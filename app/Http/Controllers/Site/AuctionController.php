@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClientProduct;
+use App\Models\ClientPaymentRequest;
 use App\Models\ProductVariant;
 use App\Models\Setting;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,6 +21,7 @@ use App\Http\Requests\AuctionSendCartRequest;
 use App\Http\Requests\AuctionSetDiscountRequest;
 use App\Http\Requests\AuctionAddCommentRequest;
 use App\Http\Requests\AuctionClientBalanceRequest;
+use App\Http\Requests\AuctionAddClientPaymentRequest;
 use App\Modules\Clients\Core\Jobs\SaveClientSumHistory;
 use App\Services\Sms\Sms;
 use App\Services\Import\Csv;
@@ -166,6 +168,8 @@ class AuctionController extends Controller
 
         $id = $request->get('id');
 
+        $addText = Setting::all(['auction_product_text_ru', 'auction_product_text_ua']);
+
         //это при дальнейшем усложнении переделать как в AggregatorController или сервис, по данным вариантов товара ?
         if ($id) {
             $dat = Product::with(['categories', 'notes', 'notes2', 'notes3', 'productVariants'])
@@ -209,15 +213,17 @@ class AuctionController extends Controller
                         'ru' => [
                             'name' => $item['name'],
                             'descr' => $item['description'],
+                            'descr_addon' => $addText[0]['auction_product_text_ru'],
                         ],
 
                         'ua' => [
                             'name' => $item['name'],
                             'descr' => $item['description_ua'],
+                            'descr_addon' => $addText[0]['auction_product_text_ua'],
                         ],
                         'images' => [
                             0 => $item['img'] ? url('/') . $item['img'] : null,
-                            //1 => $item['img2'] ? url('/') . $item['img2'] : null,
+                            1 => $item['img2'] ? url('/') . $item['img2'] : null,
                             //2 => $item['img3'] ? url('/') . $item['img3'] : null,
                         ],
                         'p_price'  => $item['auction_price'],//max($price),
@@ -603,6 +609,25 @@ class AuctionController extends Controller
         }
 
         return response()->json(['success' => true, 'balance' => $client->sum ]);
+    }
+
+    // route /auction/addClientPaymentRequest
+    public function addClientPaymentRequest(AuctionAddClientPaymentRequest $request)
+    {
+        if ($request->key !== self::API_KEY) abort(404);
+
+        $userphone = phone_format($request->userphone);
+        $client = Client::where('phone', $userphone)->first();
+
+        if (!$client || (!$client->active)) {
+            return response()->json(['success'=>false, 'reason'=>'client not exist or not active']);
+        }
+
+        $data = $request->only('sum', 'card', 'comment');
+        $data['client_id'] = $client->id;
+        ClientPaymentRequest::create($data);
+
+        return response()->json(['success'=>true, 'reason'=>'Data was added in table' ]);
     }
 
     // post curl

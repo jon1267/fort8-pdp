@@ -21,7 +21,7 @@
 
                                 <div class="form-group">
                                     <label for="analytic_code">Код аналитики</label>
-                                    <textarea class="form-control @error('analytic_code') is-invalid @enderror" rows="4"
+                                    <textarea class="form-control @error('analytic_code') is-invalid @enderror" rows="3"
                                               id="analytic_code" name="analytic_code" placeholder="Описание товара на русском"
                                     >{{(isset($setting->analytic_code)) ? $setting->analytic_code : old('analytic_code')}}</textarea>
                                     @error('analytic_code')
@@ -97,7 +97,7 @@
 
                                 </div>
 
-                                <div class="form-group ">
+                                <div class="form-group col-12 mt-5">
                                     <div class="custom-control custom-switch">
                                         <input type="checkbox" class="custom-control-input" id="slider_show" name="slider_show"
                                                value="1" {{ (isset($setting) && $setting->slider_show == 1) ? ' checked ' : '' }}>
@@ -105,7 +105,7 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group col-8 mt-5">
+                                <div class="form-group col-12 mt-5">
                                     <label for="name">Сумма за комментирование товара</label>
                                     <input class="form-control @error('auction_comment_price') is-invalid @enderror" type="text"
                                            id="auction_comment_price" name="auction_comment_price"
@@ -114,6 +114,30 @@
                                     <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
                                         </span>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group col-12 mt-5">
+                                    <label for="auction_product_text_ru">Аукцион дополнительное описание рус.</label>
+                                    <textarea class="form-control @error('auction_product_text_ru') is-invalid @enderror" rows="1"
+                                              id="auction_product_text_ru" name="auction_product_text_ru" placeholder="Описание товара на русском"
+                                    >{{(isset($setting->auction_product_text_ru)) ? $setting->auction_product_text_ru : old('auction_product_text_ru')}}</textarea>
+                                    @error('auction_product_text_ru')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group col-12 mt-5">
+                                    <label for="auction_product_text_ua">Аукцион дополнительное описание укр.</label>
+                                    <textarea class="form-control @error('auction_product_text_ua') is-invalid @enderror" rows="1"
+                                              id="auction_product_text_ua" name="auction_product_text_ua" placeholder="Описание товара на украинском"
+                                    >{{(isset($setting->auction_product_text_ua)) ? $setting->auction_product_text_ua : old('auction_product_text_ua')}}</textarea>
+                                    @error('auction_product_text_ua')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
                                     @enderror
                                 </div>
 

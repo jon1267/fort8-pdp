@@ -14,7 +14,7 @@ use App\Http\Middleware\VerifyCsrfToken;
 use App\Modules\Fops\Core\Http\Controllers\Admin\FopController;
 use App\Modules\Advs\Core\Http\Controllers\Admin\AdvController;
 use App\Modules\Operators\Core\Http\Controllers\Admin\OperatorController;
-
+use App\Modules\Clients\Core\Http\Controllers\Admin\ClientsController;
 // вход в админку
 Route::get('/', function () {
     return view('admin.admin');
@@ -54,6 +54,8 @@ Route::post('/auction/checkSum', [AuctionController::class, 'checkSum'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
 Route::post('/auction/addComment', [AuctionController::class, 'addComment'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
+Route::post('/auction/addClientPaymentRequest', [AuctionController::class, 'addClientPaymentRequest'])
+    ->withoutMiddleware([VerifyCsrfToken::class]);
 
 Route::get('/auction/getOrders', [AuctionController::class, 'getOrders']);
 Route::get('/auction/getPayStatusList',  [AuctionController::class, 'getPayStatusList']);
@@ -83,5 +85,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::resource('fop', FopController::class)->except(['show']);
     Route::resource('adv', AdvController::class)->except(['show']);
     Route::resource('operator', OperatorController::class)->except(['show']);
+    Route::resource('client', ClientsController::class)->except(['show']);
 
 });

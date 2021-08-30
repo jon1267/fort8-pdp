@@ -53,7 +53,7 @@
 
                 <li class="nav-item">
                     <!-- active по ссылке <a> подсвечивает ссылку как активную -->
-                    <a href="{{ route('admin.user.index') }}" class="nav-link">
+                    <a href="{{ route('admin.user.index') }}" class="nav-link {{\Illuminate\Support\Facades\Route::currentRouteName() == 'admin.user.index' ? 'active' : ''}}">
                         <i class="fas fa-users nav-icon"></i>
                         <p>Пользователи</p>
                     </a>
@@ -110,7 +110,7 @@
                     <a href="{{ route('admin.adv.index') }}" class="nav-link">
                         <i class="fas fa-feather-alt nav-icon"></i>
                         <!--<i class="fas fa-puzzle-piece nav-icon"></i>-->
-                        <p>Advs</p>
+                        <p>Источники</p>
                     </a>
                 </li>
 
@@ -119,6 +119,14 @@
                         <i class="fas fa-headphones nav-icon"></i>
                         <!--<i class="fas fa-puzzle-piece nav-icon"></i>-->
                         <p>Операторы</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ route('admin.client.index') }}" class="nav-link">
+                        <i class="fas fa-people-arrows nav-icon"></i>
+                        <!--<i class="fas fa-street-view nav-icon"></i>-->
+                        <p>Клиенты аукциона</p>
                     </a>
                 </li>
 
