@@ -8,10 +8,10 @@
             <div class="row">
                 <!-- /.col-md-6 -->
                 <!-- class="col-10 mx-auto"  -->
-                <div class="col-10">
+                <div class="col-md-8 col-sm-12 mx-auto">
                     <div class="card ">
                         <div class="card-header d-flex align-items-baseline ">
-                            <h5 class="m-0">Таблица advs </h5>
+                            <h5 class="m-0">Таблица источников </h5>
                             <a href="{{ route('admin.adv.create') }}" class="btn btn-primary ml-4">
                                 Добавить запись
                             </a>

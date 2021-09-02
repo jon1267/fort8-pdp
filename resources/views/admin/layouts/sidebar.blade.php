@@ -53,14 +53,14 @@
 
                 <li class="nav-item">
                     <!-- active по ссылке <a> подсвечивает ссылку как активную -->
-                    <a href="{{ route('admin.user.index') }}" class="nav-link {{\Illuminate\Support\Facades\Route::currentRouteName() == 'admin.user.index' ? 'active' : ''}}">
+                    <a href="{{ route('admin.user.index') }}" class="nav-link {{\Illuminate\Support\Facades\Route::currentRouteName() === 'admin.user.index' ? 'active' : ''}}">
                         <i class="fas fa-users nav-icon"></i>
                         <p>Пользователи</p>
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a href="{{ route('admin.category.index') }}" class="nav-link">
+                    <a href="{{ route('admin.category.index') }}" class="nav-link {{\Illuminate\Support\Facades\Route::currentRouteName() === 'admin.category.index' ? 'active' : ''}}">
                         <!--<i class="fas fa-bullhorn nav-icon"></i>-->
                         <i class="fas fa-cat nav-icon"></i>
                         <p>Категории</p>
@@ -68,7 +68,7 @@
                 </li>
 
                 <li class="nav-item">
-                    <a href="{{ route('admin.aroma.index') }}" class="nav-link">
+                    <a href="{{ route('admin.aroma.index') }}" class="nav-link {{\Illuminate\Support\Facades\Route::currentRouteName() === 'admin.aroma.index' ? 'active' : ''}}">
                         <!--<i class="fas fa-wine-bottle"></i>-->
                         <i class="fab fa-java nav-icon"></i>
                         <p>Ароматы</p>
@@ -76,7 +76,7 @@
                 </li>
 
                 <li class="nav-item">
-                    <a href="{{ route('admin.brand.index') }}" class="nav-link">
+                    <a href="{{ route('admin.brand.index') }}" class="nav-link {{\Illuminate\Support\Facades\Route::currentRouteName() === 'admin.brand.index' ? 'active' : ''}}">
                         <!--<i class="far fa-copyright"></i></i>-->
                         <i class="far fa-copyright nav-icon"></i>
                         <p>Бренды</p>
@@ -84,21 +84,21 @@
                 </li>
 
                 <li class="nav-item">
-                    <a href="{{ route('admin.product.index') }}" class="nav-link">
+                    <a href="{{ route('admin.product.index') }}" class="nav-link {{\Illuminate\Support\Facades\Route::currentRouteName() === 'admin.product.index' ? 'active' : ''}}">
                         <i class="fas fa-apple-alt nav-icon"></i>
                         <p>Товары</p>
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a href="{{ route('admin.settings.edit', 1 ) }}" class="nav-link">
+                    <a href="{{ route('admin.settings.edit', 1 ) }}" class="nav-link {{\Illuminate\Support\Facades\Route::currentRouteName() === 'admin.settings.edit' ? 'active' : ''}}">
                         <i class="fas fa-cog nav-icon"></i>
                         <p>Настройки</p>
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a href="{{ route('admin.fop.index') }}" class="nav-link">
+                    <a href="{{ route('admin.fop.index') }}" class="nav-link {{\Illuminate\Support\Facades\Route::currentRouteName() === 'admin.fop.index' ? 'active' : ''}}">
                         <i class="fas fa-user-tie nav-icon"></i>
                         <!--<i class="fas fa-tools nav-icon"></i>-->
                         <!--<i class="fas fa-wrench nav-icon"></i>-->
@@ -107,7 +107,7 @@
                 </li>
 
                 <li class="nav-item">
-                    <a href="{{ route('admin.adv.index') }}" class="nav-link">
+                    <a href="{{ route('admin.adv.index') }}" class="nav-link {{\Illuminate\Support\Facades\Route::currentRouteName() === 'admin.adv.index' ? 'active' : ''}}">
                         <i class="fas fa-feather-alt nav-icon"></i>
                         <!--<i class="fas fa-puzzle-piece nav-icon"></i>-->
                         <p>Источники</p>
@@ -115,20 +115,44 @@
                 </li>
 
                 <li class="nav-item">
-                    <a href="{{ route('admin.operator.index') }}" class="nav-link">
+                    <a href="{{ route('admin.operator.index') }}" class="nav-link {{\Illuminate\Support\Facades\Route::currentRouteName() === 'admin.operator.index' ? 'active' : ''}}">
                         <i class="fas fa-headphones nav-icon"></i>
                         <!--<i class="fas fa-puzzle-piece nav-icon"></i>-->
                         <p>Операторы</p>
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="{{ route('admin.client.index') }}" class="nav-link">
-                        <i class="fas fa-people-arrows nav-icon"></i>
-                        <!--<i class="fas fa-street-view nav-icon"></i>-->
-                        <p>Клиенты аукциона</p>
+
+                <!-- sub menu -->
+                @php
+                $currentRoute = \Illuminate\Support\Facades\Route::currentRouteName();
+                $isAuctionRoutes = ($currentRoute === 'admin.client.index') || ($currentRoute === 'admin.payment.index');
+                @endphp
+                <li class="nav-item {{ $isAuctionRoutes ? 'menu-open' : ''}}">
+                    <a href="#" class="nav-link {{ $isAuctionRoutes ? 'active' : ''}}">
+                        <i class="nav-icon fab fa-amazon"></i>
+                        <p>
+                            Аукцион
+                            <i class="fas fa-angle-left right"></i>
+                        </p>
                     </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('admin.client.index') }}" class="nav-link {{$currentRoute === 'admin.client.index' ? 'active' : ''}}">
+                                <i class="fas fa-street-view nav-icon ml-2"></i>
+                                <!--<i class="fas people-arrows nav-icon"></i>-->
+                                <p>Клиенты</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.payment.index') }}" class="nav-link {{$currentRoute === 'admin.payment.index' ? 'active' : ''}}">
+                                <i class="fas fa-comment-dollar nav-icon ml-2"></i>
+                                <p>Выплаты</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
+                <!-- sub menu ... -->
 
                 <li class="nav-item">
 
@@ -143,19 +167,7 @@
                         <p>Выход</p>
                     </a>
                 </li>
-                <!-- -->
-                <!--<li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-th"></i>
-                        <p>
-                            Simple Link
-                            <span class="right badge badge-danger">New</span>
-                        </p>
-                    </a>
-                </li>-->
             </ul>
         </nav>
-        <!-- /.sidebar-menu -->
     </div>
-    <!-- /.sidebar -->
 </aside>

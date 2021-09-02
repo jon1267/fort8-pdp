@@ -8,7 +8,7 @@
             <div class="row">
                 <!-- /.col-md-6 -->
                 <!-- class="col-10 mx-auto"  -->
-                <div class="col-10">
+                <div class="col-md-8 col-sm-12 mx-auto">
                     <div class="card ">
                         <div class="card-header d-flex align-items-baseline ">
                             <h5 class="m-0"> Бренды </h5>

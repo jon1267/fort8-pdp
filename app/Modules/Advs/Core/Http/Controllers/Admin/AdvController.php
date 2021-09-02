@@ -18,7 +18,7 @@ class AdvController extends Controller
     {
         //dd(config('view.paths'));
         return view('advs.advs_content')->with([
-            'title' => 'Редактирование таблицы advs',
+            'title' => 'Редактирование таблицы источников',
             'advs' => Adv::paginate(10),
         ]);
     }
@@ -31,7 +31,7 @@ class AdvController extends Controller
     public function create()
     {
         return view('advs.advs_create')->with([
-            'title' => 'Добавить в таблицу advs',
+            'title' => 'Добавить в таблицу источников',
         ]);
     }
 
@@ -70,7 +70,7 @@ class AdvController extends Controller
     public function edit(Adv $adv)
     {
         return view('advs.advs_create')->with([
-            'title'=> 'Редактирование таблицы advs',
+            'title'=> 'Редактирование таблицы источников',
             'adv' => $adv,
         ]);
     }

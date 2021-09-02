@@ -15,6 +15,8 @@ use App\Modules\Fops\Core\Http\Controllers\Admin\FopController;
 use App\Modules\Advs\Core\Http\Controllers\Admin\AdvController;
 use App\Modules\Operators\Core\Http\Controllers\Admin\OperatorController;
 use App\Modules\Clients\Core\Http\Controllers\Admin\ClientsController;
+use App\Modules\Clients\Payments\Core\Http\Controllers\PaymentsController;
+
 // вход в админку
 Route::get('/', function () {
     return view('admin.admin');
@@ -85,6 +87,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::resource('fop', FopController::class)->except(['show']);
     Route::resource('adv', AdvController::class)->except(['show']);
     Route::resource('operator', OperatorController::class)->except(['show']);
-    Route::resource('client', ClientsController::class)->except(['show']);
+    Route::resource('client', ClientsController::class)->except(['show', 'destroy']);
+    Route::resource('payment', PaymentsController::class)->except(['show','destroy']);
 
 });

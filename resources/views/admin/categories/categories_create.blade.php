@@ -6,7 +6,7 @@
 
             <div class="row">
 
-                <div class="col-10">
+                <div class="col-md-8 col-sm-12 mx-auto">
                     <div class="card ">
                         <div class="card-header ">
                             <h5 class="m-0">{{ (isset($category)) ? 'Обновление данных' : 'Введите данные' }}</h5>

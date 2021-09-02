@@ -8,7 +8,7 @@
             <div class="row">
                 <!-- /.col-md-6 -->
                 <!-- class="col-10 mx-auto"  -->
-                <div class="col-10">
+                <div class="col-md-8 col-sm-12 mx-auto">
                     <div class="card ">
                         <div class="card-header d-flex align-items-baseline ">
                             <h5 class="m-0"> Клиенты аукциона </h5>
@@ -38,12 +38,11 @@
                                         <td>{{$client->last_name}}</td>
                                         <td>{{$client->email}}</td>
                                         <td>{{$client->phone}}</td>
-                                        <td> @if($client->active) <i class="fas fa-check text-success"></i> @else <i class="fas fa-times text-danger"></i> @endif</td>
+                                        <td> @if($client->active) <i class="fas fa-check text-success  ml-3"></i> @else <i class="fas fa-times text-danger  ml-3"></i> @endif</td>
                                         <td>{{$client->sum}}</td>
                                         <td>
                                             <!-- ссылка независима, к форме не привязана, просто чтоб кнопы были в строку -->
                                             <a href="{{ route('admin.client.edit', $client) }}" class="btn btn-primary btn-sm mr-1" title="Редактировать фоп"> <i class="fas fa-pen"></i> </a>
-
 
                                             {{--<form action="{{ route('admin.client.destroy', $client) }}" class="form-inline " method="POST" id="client-delete-{{$client->id}}">
                                                 <div class="form-group">

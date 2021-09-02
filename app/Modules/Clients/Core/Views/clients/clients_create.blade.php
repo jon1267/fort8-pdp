@@ -6,7 +6,7 @@
 
             <div class="row">
 
-                <div class="col-8">
+                <div class="col-md-8 col-sm-12 mx-auto">
                     <div class="card ">
                         <div class="card-header ">
                             <h5 class="m-0">{{ (isset($client)) ? 'Обновление данных клиента' : 'Введите данные клиента' }}</h5>
@@ -78,7 +78,7 @@
                                                {{ (old('active') == 1) ? ' checked ' : '' }}
                                                @isset($client) @if($client->active == 1) checked @endif @endisset
                                         >
-                                        <label class="custom-control-label" for="active">Активан</label>
+                                        <label class="custom-control-label" for="active">Активен</label>
                                     </div>
                                 </div>
 
