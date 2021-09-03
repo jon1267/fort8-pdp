@@ -26,6 +26,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('update:cities')->daily(); // Run the task every day at midnight
         $schedule->command('update:offices')->daily(); //->cron('0 */12 * * *'); // every 12 hours
+        $schedule->command('backup:run --only-db')->hourly(); //run the task every hour, save only db
     }
 
     /**
