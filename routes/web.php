@@ -63,6 +63,9 @@ Route::get('/auction/getOrders', [AuctionController::class, 'getOrders']);
 Route::get('/auction/getPayStatusList',  [AuctionController::class, 'getPayStatusList']);
 Route::get('/auction/getOrderStatusList',  [AuctionController::class, 'getOrderStatusList']);
 Route::get('/auction/getClientBalance', [AuctionController::class, 'getClientBalance']);
+Route::get('/auction/getSettings', [AuctionController::class, 'getSettings']);
+Route::get('/auction/getClientDetail', [AuctionController::class, 'getClientDetail']);
+Route::get('/auction/getClientPaymentRequestList', [AuctionController::class, 'getClientPaymentRequestList']);
 
 Route::get('/xml/prom.xml', [AggregatorController::class, 'promUa']);
 Route::get('/xml/google-local', [AggregatorController::class, 'googleLocal']);

@@ -12,4 +12,9 @@ class ClientPaymentRequest extends Model
     protected $table = 'client_payment_requests';
 
     protected $fillable = ['client_id', 'sum', 'comment', 'card', 'paid'];
+
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
 }

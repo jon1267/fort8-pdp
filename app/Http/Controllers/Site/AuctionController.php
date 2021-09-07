@@ -15,6 +15,7 @@ use App\Models\Note;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Client;
+use App\Models\ClientSumHistory;
 use App\Http\Requests\AuctionClientRegisterRequest;
 use App\Http\Requests\AuctionClientLoginRequest;
 use App\Http\Requests\AuctionSendCartRequest;
@@ -299,6 +300,7 @@ class AuctionController extends Controller
         Client::create([
             'first_name' => $username,
             'phone' => $userphone,
+            'referral_code' => mt_rand(111111, 999999),
         ]);
 
         return response()->json(['success'=>true, 'password'=>$code]);
@@ -628,6 +630,66 @@ class AuctionController extends Controller
         ClientPaymentRequest::create($data);
 
         return response()->json(['success'=>true, 'reason'=>'Data was added in table' ]);
+    }
+
+    // route /auction/getSettings
+    public function getSettings(Request $request)
+    {
+        if ($request->key !== self::API_KEY) abort(404);
+
+        $auctionCommentPrice = Setting::all(['auction_comment_price']); //in settings only 1 row
+        //dd($auctionCommentPrice[0]['auction_comment_price']);
+
+        return response()->json(['comment_price'=>$auctionCommentPrice[0]['auction_comment_price'] ]);
+    }
+
+    // route /auction/getClientDetail (get request with key & userphone)
+    // с AuctionClientLoginRequest ошибки нет; тут нужен FormRequest с userphone и key
+    public function getClientDetail(AuctionClientLoginRequest $request)
+    {
+        if ($request->key !== self::API_KEY) abort(404);
+
+        $userphone = phone_format($request->userphone);
+        $client = Client::where('phone', $userphone)->first();
+
+        if (!$client || (!$client->active)) {
+            return response()->json(['success'=>false, 'reason'=>'client not exist or not active']);
+        }
+
+        $clientTransactions = ClientSumHistory::where('client_id', $client->id)->get(['note', 'amount', 'created_at']);
+
+        $out = [
+            'client_detail' => [
+                'first_name' => $client->first_name,
+                'last_name' => $client->last_name,
+                'phone' => $client->phone,
+                'sum' => $client->sum,
+                'referral_code' => $client->referral_code,
+                'active' => $client->active,
+                'transactions' => $clientTransactions,
+            ],
+
+        ];
+
+        return response()->json($out);
+    }
+    // route /auction/getClientPaymentRequestList (get request with key & userphone)
+    public function getClientPaymentRequestList(AuctionClientLoginRequest $request)
+    {
+        if ($request->key !== self::API_KEY) abort(404);
+
+        $userphone = phone_format($request->userphone);
+        $client = Client::where('phone', $userphone)->first();
+
+        if (!$client || (!$client->active)) {
+            return response()->json(['success'=>false, 'reason'=>'client not exist or not active']);
+        }
+
+        $clientPaymentRequests = ClientPaymentRequest::where('client_id', $client->id)
+            ->get(['sum', 'comment', 'card', 'paid', 'created_at'])
+            ->toArray(); // dd($clientPaymentRequests);
+
+        return response()->json($clientPaymentRequests);
     }
 
     // post curl

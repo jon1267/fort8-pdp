@@ -12,4 +12,9 @@ class ClientSumHistory extends Model
     protected $table = 'client_sum_histories';
 
     protected $fillable = ['client_id', 'note', 'amount'];
+
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
 }
