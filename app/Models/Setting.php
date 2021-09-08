@@ -11,7 +11,8 @@ class Setting extends Model
 
     protected $fillable = [
         'analytic_code', 'header_mobile', 'header_desktop', 'slider_show',
-        'auction_comment_price', 'auction_product_text_ua', 'auction_product_text_ru',
+        'auction_comment_price', 'auction_register_price', 'auction_partner_price',
+        'auction_product_text_ua', 'auction_product_text_ru',
         'created_by_id', 'updated_by_id'
     ];
 }

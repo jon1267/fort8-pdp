@@ -16,6 +16,7 @@
         "laravel/framework": "^8.12",
         "laravel/tinker": "^2.5",
         "laravel/ui": "^3.2",
+        "nao-pon/flysystem-google-drive": "~1.1",
         "sentry/sentry-laravel": "^2.3",
         "spatie/laravel-backup": "^6.16"
     },
@@ -30,7 +31,8 @@
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "platform-check": false
     },
     "extra": {
         "laravel": {

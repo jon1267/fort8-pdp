@@ -106,11 +106,35 @@
                                 </div>
 
                                 <div class="form-group col-12 mt-5">
-                                    <label for="name">Сумма за комментирование товара</label>
+                                    <label for="auction_comment_price">Вознаграждение за комментарий</label>
                                     <input class="form-control @error('auction_comment_price') is-invalid @enderror" type="text"
                                            id="auction_comment_price" name="auction_comment_price"
                                            value="{{(isset($setting->auction_comment_price)) ? $setting->auction_comment_price : old('auction_comment_price')}}">
                                     @error('auction_comment_price')
+                                    <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group col-12 mt-5">
+                                    <label for="auction_register_price">Вознаграждение за регистрацию</label>
+                                    <input class="form-control @error('auction_register_price') is-invalid @enderror" type="text"
+                                           id="auction_register_price" name="auction_register_price"
+                                           value="{{(isset($setting->auction_register_price)) ? $setting->auction_register_price : old('auction_register_price')}}">
+                                    @error('auction_register_price')
+                                    <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group col-12 mt-5">
+                                    <label for="auction_partner_price">Вознаграждение за привлечение клиента</label>
+                                    <input class="form-control @error('auction_partner_price') is-invalid @enderror" type="text"
+                                           id="auction_partner_price" name="auction_partner_price"
+                                           value="{{(isset($setting->auction_partner_price)) ? $setting->auction_partner_price : old('auction_partner_price')}}">
+                                    @error('auction_partner_price')
                                     <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
                                         </span>

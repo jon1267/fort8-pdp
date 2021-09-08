@@ -175,6 +175,11 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
+        /**
+         * https://qirolab.com/posts/how-to-setup-laravel-backup-on-google-drive-1607368130
+         */
+        App\Providers\GoogleDriveServiceProvider::class,
+
     ],
 
     /*

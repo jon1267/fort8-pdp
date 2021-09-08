@@ -8,7 +8,7 @@ return [
          * The name of this application. You can use this name to monitor
          * the backups.
          */
-        'name' => env('APP_NAME', 'laravel-backup'),
+        'name' => '',
 
         'source' => [
 
@@ -82,6 +82,8 @@ return [
             'databases' => [
                 'mysql',
                 'mysql2',
+                'mysql3',
+                'mysql4',
             ],
         ],
 
@@ -117,7 +119,8 @@ return [
              * The disk names on which the backups will be stored.
              */
             'disks' => [
-                'local',
+                'google',
+//                'local',
             ],
         ],
 
@@ -130,7 +133,7 @@ return [
          * The password to be used for archive encryption.
          * Set to `null` to disable encryption.
          */
-        'password' => env('BACKUP_ARCHIVE_PASSWORD'),
+        'password' => env('BACKUP_ARCHIVE_PASSWORD', null),
 
         /*
          * The encryption algorithm to be used for archive encryption.
@@ -167,7 +170,7 @@ return [
         'notifiable' => \Spatie\Backup\Notifications\Notifiable::class,
 
         'mail' => [
-            'to' => 'your@example.com',
+            'to' => 'korobka.dima@gmail.com',
 
             'from' => [
                 'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
@@ -198,10 +201,10 @@ return [
     'monitor_backups' => [
         [
             'name' => env('APP_NAME', 'laravel-backup'),
-            'disks' => ['local'],
+            'disks' => ['google'],
             'health_checks' => [
                 \Spatie\Backup\Tasks\Monitor\HealthChecks\MaximumAgeInDays::class => 1,
-                \Spatie\Backup\Tasks\Monitor\HealthChecks\MaximumStorageInMegabytes::class => 5000,
+                \Spatie\Backup\Tasks\Monitor\HealthChecks\MaximumStorageInMegabytes::class => 10000,
             ],
         ],
 
@@ -234,33 +237,33 @@ return [
             /*
              * The number of days for which backups must be kept.
              */
-            'keep_all_backups_for_days' => 7,
+            'keep_all_backups_for_days' => 14,
 
             /*
              * The number of days for which daily backups must be kept.
              */
-            'keep_daily_backups_for_days' => 16,
+            'keep_daily_backups_for_days' => 7,
 
             /*
              * The number of weeks for which one weekly backup must be kept.
              */
-            'keep_weekly_backups_for_weeks' => 8,
+            'keep_weekly_backups_for_weeks' => 1,
 
             /*
              * The number of months for which one monthly backup must be kept.
              */
-            'keep_monthly_backups_for_months' => 4,
+            'keep_monthly_backups_for_months' => 1,
 
             /*
              * The number of years for which one yearly backup must be kept.
              */
-            'keep_yearly_backups_for_years' => 2,
+            'keep_yearly_backups_for_years' => 1,
 
             /*
              * After cleaning up the backups remove the oldest backup until
              * this amount of megabytes has been reached.
              */
-            'delete_oldest_backups_when_using_more_megabytes_than' => 5000,
+            'delete_oldest_backups_when_using_more_megabytes_than' => 10000,
         ],
     ],
 

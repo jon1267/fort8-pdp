@@ -431,6 +431,7 @@ class AuctionController extends Controller
         $data['adv']  = 335;
         $data['auction'] = 1;
         $data['sum'] = 0;
+        $data['pay_online'] = $request->pay_online;
 
         $auctionProducts=[];
         if (is_array($request->products)) {
@@ -451,13 +452,15 @@ class AuctionController extends Controller
             $data['mess'] = 'Скидка на заказ '. $request->discount. ' грн.';
         }
 
-
         $data['product'] = json_encode($auctionProducts);
         //return response()->json($data);
 
         $response = $this->request($url, $data);
 
-        if (ctype_digit($response)) {
+        if (is_array($response)) {
+            $out = ['success' => 1, 'orderId' => $response['order_id'], 'paymentLink' => $response['payment_link']];
+        }
+        elseif (ctype_digit($response)) {
             $out = ['success' => 1, 'orderId' => $response];
         } else {
             $out = ['success' => 0, 'reason' => $response];
@@ -637,10 +640,14 @@ class AuctionController extends Controller
     {
         if ($request->key !== self::API_KEY) abort(404);
 
-        $auctionCommentPrice = Setting::all(['auction_comment_price']); //in settings only 1 row
+        $auctionCommentPrice = Setting::all(['auction_comment_price', 'auction_register_price', 'auction_partner_price']); //in settings only 1 row
         //dd($auctionCommentPrice[0]['auction_comment_price']);
 
-        return response()->json(['comment_price'=>$auctionCommentPrice[0]['auction_comment_price'] ]);
+        return response()->json([
+            'comment_price'  => $auctionCommentPrice[0]['auction_comment_price'],
+            'register_price' => $auctionCommentPrice[0]['auction_register_price'],
+            'partner_price'  => $auctionCommentPrice[0]['auction_partner_price'],
+        ]);
     }
 
     // route /auction/getClientDetail (get request with key & userphone)
