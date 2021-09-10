@@ -30,7 +30,7 @@ class SdekController extends Controller
             }
 
             if (($keyword and strpos(mb_strtolower($office['address_full'], 'UTF-8'), mb_strtolower($keyword, 'UTF-8')) !== false) or !$keyword) {
-                $rows[] =  $office['code'] . ' - ' . str_replace(array('\'', '"'), '', $office['address_full']) . ' (' . $office['postal_code'] . ')' . $pos ;
+                $rows[] =  $office['code'] . ' - ' . str_replace(array('\'', '"'), '', $office['address_full']) . ' (' . $office['postal_code'] . ')' . $pos;
             }
         }
 
