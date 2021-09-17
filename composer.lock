@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9bff8bdd62e569492c1e4e6960b3a751",
+    "content-hash": "73947717f01c66b9062c2c0039a07e9d",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -1681,6 +1681,50 @@
                 "source": "https://github.com/Jean85/pretty-package-versions/tree/2.0.4"
             },
             "time": "2021-05-26T08:46:42+00:00"
+        },
+        {
+            "name": "lapaygroup/russianpost",
+            "version": "0.9.15",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/lapaygroup/RussianPost.git",
+                "reference": "5f5c25434ae45fced6efd82ec1849911f9e12b03"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/lapaygroup/RussianPost/zipball/5f5c25434ae45fced6efd82ec1849911f9e12b03",
+                "reference": "5f5c25434ae45fced6efd82ec1849911f9e12b03",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-soap": "*",
+                "guzzlehttp/guzzle": "6.3 - 7.3",
+                "php": ">=5.5",
+                "psr/log": "^1.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "LapayGroup\\RussianPost\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nikolay Lapay",
+                    "email": "nl@wildtuna.pro"
+                }
+            ],
+            "description": "SDK для работы с API Почты России (pochta.ru)",
+            "support": {
+                "issues": "https://github.com/lapaygroup/russianpost/issues",
+                "source": "https://github.com/lapaygroup/russianpost"
+            },
+            "time": "2021-04-28T13:13:51+00:00"
         },
         {
             "name": "laravel/framework",

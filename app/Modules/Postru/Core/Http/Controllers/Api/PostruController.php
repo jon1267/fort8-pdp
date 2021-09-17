@@ -5,6 +5,10 @@ namespace App\Modules\Postru\Core\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Modules\Postru\Core\Services\PostRu;
+use LapayGroup\RussianPost\Providers\OtpravkaApi;
+use LapayGroup\RussianPost\AddressList;
+use LapayGroup\RussianPost\Entity\Order;
+use App\Modules\Postru\Core\Http\Requests\CreateOrderRequest;
 
 class PostruController extends Controller
 {
@@ -87,5 +91,121 @@ class PostruController extends Controller
     {
         $zip = trim($zip);
         return (new PostRu())->getOfficeByIndex($zip); //dd($office, gettype($office));
+    }
+
+    /**
+     * this method use https://github.com/lapaygroup/RussianPost
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function address(Request $request)
+    {
+        $config = include 'lapaygroup_config.php';
+        $address = trim($request->q);
+        $result = [];
+
+        try {
+            $otpravkaApi = new OtpravkaApi($config);
+            $addressList = new AddressList();
+            $addressList->add($address);
+
+            $result = $otpravkaApi->clearAddress($addressList);
+        }
+
+        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
+            // Обработка ошибочного ответа от API ПРФ
+        }
+
+        catch (\Exception $e) {
+            // Обработка нештатной ситуации
+        }
+
+        // if address not validated, return empty array
+        if(is_array($result[0]) && isset($result[0]['validation-code']) && $result[0]['validation-code']!=='VALIDATED') {
+            return response()->json([]);
+        }
+
+        return response()->json($result); //echo '--- нормализация аддреса ---<br>'.'<pre>'.print_r($result,1).'</pre>';
+    }
+
+    /**
+     * https://github.com/lapaygroup/RussianPost#create_orders_v2
+     * (просто создание заказа v2, без помещения в партию...)
+     * @param CreateOrderRequest $request
+     */
+    public function createOrder(CreateOrderRequest $request)
+    {
+        $config = include 'lapaygroup_config.php';
+        $result = [];
+
+        try {
+            $otpravkaApi = new OtpravkaApi($config);
+
+            $orders = [];
+            $order = new Order();
+            /*$order->setAddressTypeTo('DEFAULT');
+            $order->setMailCategory('ORDINARY');
+            $order->setMailDirect(643);
+            $order->setMailType('POSTAL_PARCEL');
+            $order->setTelAddress(79459562067);
+            $order->setTransportType('SURFACE');
+            $order->setFragile(true);*/
+            $order->setAreaTo(trim($request->area_to));
+            $order->setIndexTo(trim($request->index_to));// 115551
+            $order->setPostOfficeCode(trim($request->postoffice_code));//109012
+            $order->setGivenName(trim($request->given_name));//'Иван'// имя получателя
+            $order->setHouseTo(trim($request->house_to));//'92'
+            $order->setCorpusTo(trim($request->corpus_to));//'3'
+            $order->setMass(trim($request->mass));// 1000
+            $order->setOrderNum(trim($request->order_num)); //'2'
+            $order->setPlaceTo(trim($request->place_to));//'Москва'
+            $order->setRecipientName(trim($request->recipient_name));//'Иванов Иван'
+            $order->setRegionTo(trim($request->region_to));//'Москва'
+            $order->setStreetTo(trim($request->street_to));//'Каширское шоссе'
+            $order->setRoomTo(trim($request->room_to));//'1'
+            $order->setSurname(trim($request->surname));//'Иванов'
+            $orders[] = $order->asArr();
+
+            $result = $otpravkaApi->createOrdersV2($orders);
+
+        }
+
+        catch (\InvalidArgumentException $e) {
+            // Обработка ошибки заполнения параметров
+        }
+
+        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
+            // Обработка ошибочного ответа от API ПРФ
+        }
+
+        catch (\Exception $e) {
+            // Обработка нештатной ситуации
+        }
+
+        //echo '--- создание заказа v2 ---<br>'.'<pre>'.print_r($result,1).'</pre>';
+        return $result; //return response()->json($result);
+    }
+
+    public function deleteOrders($orderIds)
+    {
+        $config = include 'lapaygroup_config.php';
+        $data = is_array($orderIds) ? $orderIds : [$orderIds];
+        $result = [];
+
+        try {
+            $otpravkaApi = new OtpravkaApi($config);
+            $result = $otpravkaApi->deleteOrders($data);
+        }
+
+        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
+            // Обработка ошибочного ответа от API ПРФ
+        }
+
+        catch (\Exception $e) {
+            // Обработка нештатной ситуации
+        }
+
+        //echo '--- создание заказа v2 ---<br>'.'<pre>'.print_r($result,1).'</pre>';
+        return response()->json($result);
     }
 }

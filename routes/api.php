@@ -20,3 +20,7 @@ Route::get('/novaposhta/offices', [NovaPoshtaController::class, 'offices']);
 Route::get('/sdek/offices', [SdekController::class, 'offices']);
 Route::get('/postru/office', [PostruController::class, 'office']);
 Route::get('/postru/offices', [PostruController::class, 'offices']);
+Route::get('/postru/address', [PostruController::class, 'address']);
+
+Route::post('/postru/create-order', [PostruController::class, 'createOrder']);
+Route::delete('/postru/delete-order/{ids}', [PostruController::class, 'deleteOrders']);
