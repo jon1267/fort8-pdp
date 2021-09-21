@@ -24,3 +24,8 @@ Route::get('/postru/address', [PostruController::class, 'address']);
 
 Route::post('/postru/create-order', [PostruController::class, 'createOrder']);
 Route::delete('/postru/delete-order/{ids}', [PostruController::class, 'deleteOrders']);
+
+Route::post('/postru/create-batch', [PostruController::class, 'createBatch']);
+Route::get('/postru/get-all-batches', [PostruController::class, 'getAllBatches']);
+
+Route::get('/postru/register', [PostruController::class, 'createOrUpdateRegister']);

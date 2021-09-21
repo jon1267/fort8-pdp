@@ -3,12 +3,14 @@
 namespace App\Modules\Postru\Core\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Modules\Postru\Core\Services\PostRu;
 use LapayGroup\RussianPost\Providers\OtpravkaApi;
 use LapayGroup\RussianPost\AddressList;
 use LapayGroup\RussianPost\Entity\Order;
 use App\Modules\Postru\Core\Http\Requests\CreateOrderRequest;
+use App\Models\PostruRegisters;
 
 class PostruController extends Controller
 {
@@ -143,13 +145,6 @@ class PostruController extends Controller
 
             $orders = [];
             $order = new Order();
-            /*$order->setAddressTypeTo('DEFAULT');
-            $order->setMailCategory('ORDINARY');
-            $order->setMailDirect(643);
-            $order->setMailType('POSTAL_PARCEL');
-            $order->setTelAddress(79459562067);
-            $order->setTransportType('SURFACE');
-            $order->setFragile(true);*/
             $order->setAreaTo(trim($request->area_to));
             $order->setIndexTo(trim($request->index_to));// 115551
             $order->setPostOfficeCode(trim($request->postoffice_code));//109012
@@ -182,10 +177,15 @@ class PostruController extends Controller
             // Обработка нештатной ситуации
         }
 
-        //echo '--- создание заказа v2 ---<br>'.'<pre>'.print_r($result,1).'</pre>';
-        return $result; //return response()->json($result);
+        return response()->json($result); //echo '--- создание заказа v2 ---<br>'.'<pre>'.print_r($result,1).'</pre>';
     }
 
+    /**
+     * Удаление просто созданного, но не помещенного в партию заказа.
+     * Если помещен, то он уже невидим, и удалить просто так нельзя. Удалять из партии.
+     * @param $orderIds
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function deleteOrders($orderIds)
     {
         $config = include 'lapaygroup_config.php';
@@ -207,5 +207,84 @@ class PostruController extends Controller
 
         //echo '--- создание заказа v2 ---<br>'.'<pre>'.print_r($result,1).'</pre>';
         return response()->json($result);
+    }
+
+    /**
+     * Создание партии из N заказов с использ. библиотеки LapayGroup
+     * (https://github.com/lapaygroup/RussianPost)
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function createBatch(Request $request)
+    {
+        $config = include 'lapaygroup_config.php';
+        $data = [$request->order_id];
+        $result = [];
+
+        try {
+            $otpravkaApi = new OtpravkaApi($config);
+            $result = $otpravkaApi->createBatch($data);
+        }
+
+        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
+            // Обработка ошибочного ответа от API ПРФ
+        }
+
+        catch (\Exception $e) {
+            // Обработка нештатной ситуации
+        }
+
+        //echo '--- создание партии ---<br>'.'<pre>'.print_r($result,1).'</pre>';
+        return response()->json($result);
+    }
+
+    public function getAllBatches()
+    {
+        $config = include 'lapaygroup_config.php';
+
+        $result = [];
+        try {
+            $otpravkaApi = new OtpravkaApi($config);
+            $result = $otpravkaApi->getAllBatches(); // Может вызываться с фильтрами
+        }
+
+        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
+            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
+        }
+
+        catch (\Exception $e) {
+            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
+        }
+
+        return response()->json($result);
+    }
+
+    /**
+     * $order ['barcode']
+     * @param array $order
+     */
+    public function createOrUpdateRegister(array $order)
+    {
+        $todayRecord = PostruRegisters::whereDate('created_at', Carbon::today())->first();
+        //dd($todayRecord);
+
+        if ($todayRecord) {
+            // update record in postru_register: add new barcode in text field barcodes,
+            // and dont forgot already presents barcodes.
+        } else {
+            // create Batch get it name (1056), add record in postru_register
+            $config = include 'lapaygroup_config.php';
+            $result = [];
+            $otpravkaApi = new OtpravkaApi($config);
+            $result = $otpravkaApi->createBatch($order);
+            if (isset($result['batch-status']) && ($result['batch-status'] === 'CREATED') ) {
+                PostruRegisters::create([
+                    'name' => $result['batch-name'],
+                    'barcodes' => json_encode($order)
+                ]);
+            }
+        }
+
+
     }
 }

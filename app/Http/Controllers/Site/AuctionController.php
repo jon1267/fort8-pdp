@@ -413,7 +413,7 @@ class AuctionController extends Controller
     {
         if ($request->key !== self::API_KEY) abort(404);
 
-        $url = 'http://kleopatra0707.com/getorderlanding';
+        $url = 'http://kleopatra0707.com/getorderauction';
         $data = [];
 
         $userphone = phone_format($request->userphone);
@@ -453,17 +453,13 @@ class AuctionController extends Controller
         }
 
         $data['product'] = json_encode($auctionProducts);
-        //return response()->json($data);
 
-        $response = $this->request($url, $data);
+        $response = json_decode($this->request($url, $data), true);
 
-        if (is_array($response)) {
-            $out = ['success' => 1, 'orderId' => $response['order_id'], 'paymentLink' => $response['payment_link']];
-        }
-        elseif (ctype_digit($response)) {
-            $out = ['success' => 1, 'orderId' => $response];
-        } else {
-            $out = ['success' => 0, 'reason' => $response];
+        $out = ['success' => 1, 'orderId' => $response['order_id']];
+
+        if (isset($response['payment_link'])) {
+            $out['paymentLink'] = $response['payment_link'];
         }
 
         return response()->json($out);
