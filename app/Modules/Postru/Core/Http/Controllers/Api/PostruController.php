@@ -4,6 +4,7 @@ namespace App\Modules\Postru\Core\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
+use DateTimeImmutable;
 use Illuminate\Http\Request;
 use App\Modules\Postru\Core\Services\PostRu;
 use LapayGroup\RussianPost\Providers\OtpravkaApi;
@@ -115,11 +116,11 @@ class PostruController extends Controller
         }
 
         catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
-            // Обработка ошибочного ответа от API ПРФ
+            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
         }
 
         catch (\Exception $e) {
-            // Обработка нештатной ситуации
+            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
         }
 
         // if address not validated, return empty array
@@ -166,15 +167,15 @@ class PostruController extends Controller
         }
 
         catch (\InvalidArgumentException $e) {
-            // Обработка ошибки заполнения параметров
+            dd('Invalid Argument Exception: '. $e->getMessage());// Обработка ошибки заполнения параметров
         }
 
         catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
-            // Обработка ошибочного ответа от API ПРФ
+            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
         }
 
         catch (\Exception $e) {
-            // Обработка нештатной ситуации
+            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
         }
 
         return response()->json($result); //echo '--- создание заказа v2 ---<br>'.'<pre>'.print_r($result,1).'</pre>';
@@ -198,11 +199,11 @@ class PostruController extends Controller
         }
 
         catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
-            // Обработка ошибочного ответа от API ПРФ
+            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
         }
 
         catch (\Exception $e) {
-            // Обработка нештатной ситуации
+            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
         }
 
         //echo '--- создание заказа v2 ---<br>'.'<pre>'.print_r($result,1).'</pre>';
@@ -211,6 +212,7 @@ class PostruController extends Controller
 
     /**
      * Создание партии из N заказов с использ. библиотеки LapayGroup
+     * (заказ уже создан, имеется его id )
      * (https://github.com/lapaygroup/RussianPost)
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -227,17 +229,139 @@ class PostruController extends Controller
         }
 
         catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
-            // Обработка ошибочного ответа от API ПРФ
+            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
         }
 
         catch (\Exception $e) {
-            // Обработка нештатной ситуации
+            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
         }
 
         //echo '--- создание партии ---<br>'.'<pre>'.print_r($result,1).'</pre>';
         return response()->json($result);
     }
 
+    // $orderIds или массив id заказов, типа ['310115153', '310115157', '115322331']
+    // или один id заказа (строка/число)
+    public function createBatchForRegister($orderIds)
+    {
+        $config = include 'lapaygroup_config.php';
+        $data = is_array($orderIds) ? $orderIds : [$orderIds];
+        $result = [];
+
+        try {
+            $otpravkaApi = new OtpravkaApi($config);
+            $result = $otpravkaApi->createBatch($data);
+        }
+
+        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
+            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
+        }
+
+        catch (\Exception $e) {
+            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
+        }
+
+        //echo '--- создание партии ---<br>'.'<pre>'.print_r($result,1).'</pre>';
+        return $result;
+    }
+
+    // возвращает pdf файл с формой Ф103 для указанной партии ($bachName).
+    // метод printF103 работает только если для партии выполнялся метод checkin (проверка партии $bachName )
+    public function printF103($bachName)
+    {
+        $config = include 'lapaygroup_config.php';
+
+        try {
+            $otpravkaApi = new OtpravkaApi($config);
+            $otpravkaApi->sendingF103form($bachName); //$otpravkaApi->sendingF103form($bachName, true); // С онлайн балансом
+            $result = $otpravkaApi->generateDocF103($bachName, OtpravkaApi::DOWNLOAD_FILE);
+        }
+        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
+            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
+        }
+
+        catch (\Exception $e) {
+            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
+        }
+
+
+    }
+
+    // Генерация печатных форм заказа по id заказа. (ф7п это пдф с адресами от кого, и кому/куда)
+    // Возвращает pdf файл, который может содержать в зависимости от типа отправления:
+    // форму ф7п (посылка, посылка-онлайн, бандероль, курьер-онлайн) или
+    // форму Е-1 (EMS, Бизнес курьер, Бизнес курьер экспресс) или конверт (письмо заказное).
+    public function printPdfForms($orderId, $batchCreated = true)
+    {
+        $config = include 'lapaygroup_config.php';
+
+        try {
+            $otpravkaApi = new OtpravkaApi($config);
+            // Генерация печатных форм до формирования партии (после формирования партии $batchCreated = true)
+            $result = $otpravkaApi->generateDocOrderPrintForm($orderId, OtpravkaApi::DOWNLOAD_FILE, $batchCreated, new DateTimeImmutable('now'));
+            //dd($result);
+            //header("Content-type: application/pdf");
+            //print $result->getStream();
+        }
+        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
+            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
+        }
+
+        catch (\Exception $e) {
+            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
+        }
+
+    }
+
+    // Запрос данных о заказах в партии
+    public function getOrdersInBatch($batch)
+    {
+        $config = include 'lapaygroup_config.php';
+        $result = [];
+
+        try {
+            $otpravkaApi = new OtpravkaApi($config);
+            $result = $otpravkaApi->getOrdersInBatch($batch); // Может вызываться с фильтрами
+        }
+
+        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
+            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
+        }
+
+        catch (\Exception $e) {
+            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
+        }
+
+        return response()->json($result);
+    }
+
+    // Удаление заказов, которые уже были добавлены в партию.
+    public function deleteOrdersInBatch($orderIds)
+    {
+        $config = include 'lapaygroup_config.php';
+        $data = is_array($orderIds) ? $orderIds : [$orderIds];
+        $result = [];
+
+        try {
+            $otpravkaApi = new OtpravkaApi($config);
+            $result = $otpravkaApi->deleteOrdersInBatch($data);
+        }
+
+        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
+            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
+        }
+
+        catch (\Exception $e) {
+            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
+        }
+
+        return response()->json($result);
+    }
+
+    /**
+     * поиск всех партий (забыт номер партии и тп.)
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getAllBatches()
     {
         $config = include 'lapaygroup_config.php';
@@ -260,31 +384,42 @@ class PostruController extends Controller
     }
 
     /**
-     * $order ['barcode']
-     * @param array $order
+     *
+     * @param Request $request
      */
-    public function createOrUpdateRegister(array $order)
+    public function createOrUpdateRegister(Request $request)
     {
+        $barcode = $request->barcode;
+        $orderId = $request->order_id;
+
         $todayRecord = PostruRegisters::whereDate('created_at', Carbon::today())->first();
         //dd($todayRecord);
+        //return response()->json(['barcode' => $barcode, 'orderId' => $orderId, 'today' => $todayRecord]);
 
         if ($todayRecord) {
             // update record in postru_register: add new barcode in text field barcodes,
-            // and dont forgot already presents barcodes.
+            // and not forget already presents barcodes.
+            $barcodes = json_decode($todayRecord->barcodes); // надеюсь $barcodes это массив
+
+            $barcodes[] = $barcode;
+            $barcodes = json_encode($barcodes);
+            $todayRecord->update(['barcodes' => $barcodes]);
+
+            return  response()->json($todayRecord);
         } else {
             // create Batch get it name (1056), add record in postru_register
-            $config = include 'lapaygroup_config.php';
-            $result = [];
-            $otpravkaApi = new OtpravkaApi($config);
-            $result = $otpravkaApi->createBatch($order);
-            if (isset($result['batch-status']) && ($result['batch-status'] === 'CREATED') ) {
+            $result = $this->createBatchForRegister($orderId);//dd($result, gettype($result));
+
+            if (isset($result['batches'][0]['batch-status']) && ($result['batches'][0]['batch-status'] === 'CREATED') ) {
                 PostruRegisters::create([
-                    'name' => $result['batch-name'],
-                    'barcodes' => json_encode($order)
+                    'name' => $result['batches'][0]['batch-name'],
+                    'barcodes' => json_encode([$barcode]),
                 ]);
             }
+            return response()->json(['name' => $result['batches'][0]['batch-name'], 'barcodes' => json_encode($barcode) ]);
         }
 
-
     }
+
+
 }
