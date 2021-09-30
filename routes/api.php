@@ -30,6 +30,7 @@ Route::get('/postru/get-all-batches', [PostruController::class, 'getAllBatches']
 Route::get('/postru/get-orders-batches/{batch}', [PostruController::class, 'getOrdersInBatch']);
 Route::delete('/postru/delete-orders-batch/{ids}', [PostruController::class, 'deleteOrdersInBatch']);
 
-Route::post('/postru/register', [PostruController::class, 'createOrUpdateRegister']);
 Route::get('/postru/print-pdf-forms/{id}', [PostruController::class, 'printPdfForms']);
 Route::get('/postru/print-f103/{batch}', [PostruController::class, 'printF103']);
+
+Route::post('/postru/create', [PostruController::class, 'index']);
