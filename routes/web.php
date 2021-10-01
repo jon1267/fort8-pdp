@@ -16,6 +16,7 @@ use App\Modules\Advs\Core\Http\Controllers\Admin\AdvController;
 use App\Modules\Operators\Core\Http\Controllers\Admin\OperatorController;
 use App\Modules\Clients\Core\Http\Controllers\Admin\ClientsController;
 use App\Modules\Clients\Payments\Core\Http\Controllers\PaymentsController;
+use App\Modules\Postru\Core\Http\Controllers\Api\PostruController;
 
 // вход в админку
 Route::get('/', function () {
@@ -70,7 +71,7 @@ Route::get('/auction/getClientPaymentRequestList', [AuctionController::class, 'g
 Route::get('/xml/prom.xml', [AggregatorController::class, 'promUa']);
 Route::get('/xml/google-local', [AggregatorController::class, 'googleLocal']);
 Route::get('/xml/google-original', [AggregatorController::class, 'googleOriginal']);
-
+Route::get('/test', [PostruController::class, 'test']);
 
 Auth::routes(['register' => false]); //Auth::routes();
 
