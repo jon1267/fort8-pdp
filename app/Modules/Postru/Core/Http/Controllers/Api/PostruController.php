@@ -12,7 +12,7 @@ use LapayGroup\RussianPost\AddressList;
 use LapayGroup\RussianPost\Entity\Order;
 use App\Modules\Postru\Core\Http\Requests\CreateOrderRequest;
 use App\Models\PostruRegisters;
-use phpDocumentor\Reflection\Types\Object_;
+use LapayGroup\RussianPost\Entity\Item;
 
 class PostruController extends Controller
 {
@@ -106,12 +106,11 @@ class PostruController extends Controller
      */
     public function address(Request $request)
     {
-        $config = include 'lapaygroup_config.php';
         $address = trim($request->q);
         $result = [];
 
         try {
-            $otpravkaApi = new OtpravkaApi($config);
+            $otpravkaApi = new OtpravkaApi($config = include 'lapaygroup_config.php');
             $addressList = new AddressList();
             $addressList->add($address);
 
@@ -135,6 +134,7 @@ class PostruController extends Controller
         return response()->json($result); //echo '--- нормализация аддреса ---<br>'.'<pre>'.print_r($result,1).'</pre>';
     }
 
+    // точная копия address, но не для постмена, а для внутр. исполз.
     public function addressN(string $address)
     {
         $result = [];
@@ -228,13 +228,23 @@ class PostruController extends Controller
             $order->setCorpusTo(trim($orderData['corpus_to']));//'3'
             $order->setMass(trim($orderData['mass']));// 1000
             $order->setOrderNum(trim($orderData['order_num'])); //'2'
+            $order->setComment(trim($orderData['comment']));
+            $order->setTelAddress(trim($orderData['phone']));
             $order->setPlaceTo(trim($orderData['place_to']));//'Москва'
             $order->setRecipientName(trim($orderData['recipient_name']));//'Иванов Иван'
             $order->setRegionTo(trim($orderData['region_to']));//'Москва'
             $order->setStreetTo(trim($orderData['street_to']));//'Каширское шоссе'
             $order->setRoomTo(trim($orderData['room_to']));//'1'
             $order->setSurname(trim($orderData['surname']));//'Иванов'
-            $orders[] = $order->asArr();
+            //$order->setFragile($orderData['fragile']); //признак хрупкое (в пдфке добавляет 4 красные рюмики)
+            //////$order->setItems($orderData['goods']);
+            $order->setInsrValue($orderData['insr-value']); // объявленная стоимость коп.
+            $order->setPayment($orderData['payment']); // наложенным платежем
+            //$order->setMailCategory('WITH_DECLARED_VALUE'); //для объявлен. стоим. без Налож Плат.
+            //$order->setMailCategory('WITH_DECLARED_VALUE_AND_CASH_ON_DELIVERY'); //для объявлен. стоим. и Налож Плат.
+            $order->setMailCategory($orderData['mail-category']);
+            $order->setMailType($orderData['mail-type']);
+            $orders[] = $order->asArr(); //dd($orders);
 
             $result = $otpravkaApi->createOrdersV2($orders);
 
@@ -288,17 +298,24 @@ class PostruController extends Controller
      * Создание партии из N заказов с использ. библиотеки LapayGroup
      * (заказ уже создан, есть его id, из этого id создается партия)
      * (https://github.com/lapaygroup/RussianPost)
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * (createBatch и createBatchN очень похожи ... хочется отрефакторить в один код)
+     * @param mixed $request
+     * @param bool $postman
+     * @param mixed $orderIds
+     * @return mixed
      */
-    public function createBatch(Request $request)
+    public function createBatch(?Request $request, $postman = true, $orderIds = null)
     {
-        $config = include 'lapaygroup_config.php';
-        $data = [$request->order_id];
+        if ($postman) {
+            $data = [$request->order_id];
+        } else {
+            $data = is_array($orderIds) ? $orderIds : [$orderIds];
+        }
+
         $result = [];
 
         try {
-            $otpravkaApi = new OtpravkaApi($config);
+            $otpravkaApi = new OtpravkaApi($config = include 'lapaygroup_config.php');
             $result = $otpravkaApi->createBatch($data);
         }
 
@@ -311,7 +328,7 @@ class PostruController extends Controller
         }
 
         //echo '--- создание партии ---<br>'.'<pre>'.print_r($result,1).'</pre>';
-        return response()->json($result);
+        return $postman ?  response()->json($result) : $result;
     }
 
     // $orderIds или массив id заказов, типа ['310115153', '310115157', '115322331']
@@ -339,30 +356,7 @@ class PostruController extends Controller
         return $result;
     }
 
-    // массив заказов помещает в уже существующую партию. (не тестил)
-    public function addOrdersToBatch(string $batch, $orderIds)
-    {
-        $orders = is_array($orderIds) ? $orderIds : [$orderIds];
-
-        try {
-            $otpravkaApi = new OtpravkaApi($config = include 'lapaygroup_config.php');
-            $result = $otpravkaApi->addOrdersToBatch($batch, $orders); // Ответ аналогичен созданию заказов
-        }
-        catch (\InvalidArgumentException $e) {
-            dd('Invalid Argument Exception: '. $e->getMessage());// Обработка ошибки заполнения параметров
-        }
-
-        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
-            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
-        }
-
-        catch (\Exception $e) {
-            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
-        }
-
-        return $result; //return response()->json($result);
-    }
-
+    // в уже созд. партию помещает уже созд. заказ, по его id (почты россии)
     public function moveOrdersToBatch(string $batch, $orderIds)
     {
         $data = is_array($orderIds) ? $orderIds : [$orderIds];
@@ -386,14 +380,16 @@ class PostruController extends Controller
 
     // возвращает pdf файл с формой Ф103 для указанной партии ($bachName).
     // метод printF103 работает только если для партии выполнялся метод checkin (проверка партии $bachName )
-    public function printF103($bachName)
+    // в generateDocF103() возможны 2е константы: OtpravkaApi::PRINT_FILE  OtpravkaApi::DOWNLOAD_FILE
+    public function printF103($bachName, $checkin = false)
     {
-        $config = include 'lapaygroup_config.php';
 
         try {
-            $otpravkaApi = new OtpravkaApi($config);
-            $otpravkaApi->sendingF103form($bachName); //$otpravkaApi->sendingF103form($bachName, true); // С онлайн балансом
-            $result = $otpravkaApi->generateDocF103($bachName, OtpravkaApi::DOWNLOAD_FILE);
+            $otpravkaApi = new OtpravkaApi($config = include 'lapaygroup_config.php');
+            if ($checkin) {
+                $otpravkaApi->sendingF103form($bachName); //$otpravkaApi->sendingF103form($bachName, true);//с онлайн балансом
+            }
+            return $otpravkaApi->generateDocF103($bachName, OtpravkaApi::PRINT_FILE);
         }
         catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
             dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
@@ -408,16 +404,16 @@ class PostruController extends Controller
     // Возвращает pdf файл, который может содержать в зависимости от типа отправления:
     // форму ф7п (посылка, посылка-онлайн, бандероль, курьер-онлайн) или
     // форму Е-1 (EMS, Бизнес курьер, Бизнес курьер экспресс) или конверт (письмо заказное).
-    public function printPdfForms($orderId, $batchCreated = true)
+    public function printPdfForms($orderId, $batchCreated = false)
     {
         $config = include 'lapaygroup_config.php';
 
         try {
             $otpravkaApi = new OtpravkaApi($config);
             // Генерация печатных форм до формирования партии (после формирования партии $batchCreated = true)
-            return $otpravkaApi->generateDocOrderPrintForm($orderId, OtpravkaApi::PRINT_FILE, $batchCreated, new DateTimeImmutable('now'));
+            return $otpravkaApi->generateDocOrderPrintForm($orderId, OtpravkaApi::PRINT_FILE, $batchCreated, new DateTimeImmutable('now'), OtpravkaApi::PRINT_TYPE_THERMO);
 
-            //dd($result, gettype($result), $result->getStream());
+            //dd($result, $result->getStream()->getContents());
             /*if (!$result->getError()) {
                 $savePdf = public_path().'\src\\'.'postru_'.$orderId.'.pdf';
                 file_put_contents($savePdf, $result->getStream());
@@ -456,7 +452,7 @@ class PostruController extends Controller
         return response()->json($result);
     }
 
-    // Удаление заказов, которые уже были добавлены в партию.
+    // Удаление заказов (по id заказа), которые уже были добавлены в партию.
     public function deleteOrdersInBatch($orderIds)
     {
         $config = include 'lapaygroup_config.php';
@@ -476,7 +472,33 @@ class PostruController extends Controller
             dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
         }
 
-        return response()->json($result);
+        return  $result; //response()->json($result);
+    }
+
+    // Удаление заказа (по баркоду), которые уже были добавлены в партию.
+    // (не помещенные в партию заказы, по баркоду не находятся. поиск всегда дает [] )
+    public function deleteOrdersInBatchByBarcode($barcode)
+    {
+        try {
+            $otpravkaApi = new OtpravkaApi($config = include 'lapaygroup_config.php');
+            $resultFind = $otpravkaApi->findOrderByRpo($barcode); //dd($resultFind);
+
+            if(!count($resultFind)) {
+                //dd(['error' => true, 'message' => 'for barcode '. $barcode .' nothing not found']);
+                return ['error' => true, 'message' => 'for barcode '. $barcode .' nothing not found'];
+            }
+
+            return $this->deleteOrdersInBatch($resultFind[0]['id']);//dd($this->deleteOrdersInBatch($resultFind[0]['id']));
+        }
+
+        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
+            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
+        }
+
+        catch (\Exception $e) {
+            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
+        }
+
     }
 
     /**
@@ -519,7 +541,7 @@ class PostruController extends Controller
             //  add new barcode in text field barcodes, with already presents barcodes.
             $batchName = $todayRecord->name;
             $result = $this->moveOrdersToBatch($batchName, $orderId);
-            //dd($result, gettype($result));// тут если успех, то код ниже...
+            //dd($result, gettype($result)); // тут если успех, то код ниже...
 
             $barcodes = json_decode($todayRecord->barcodes);
             $barcodes[] = $barcode;
@@ -542,14 +564,13 @@ class PostruController extends Controller
 
         // тут (по идее) у нас есть N партии, id заказа (от почты ру)
         // пробуем печатать пдф для посылки: отправитель/получатель (ф7п)
-        $pdf = $this->printPdfForms($orderId);
-        dd($pdf, $pdf->getStream());
+        $pdf = $this->printPdfForms($orderId, true); //dd($pdf, $pdf->getStream()->getContents());
 
         if(is_object($pdf) && !$pdf->getError())
         {
             return [
                 'ttn' => $barcode,
-                'pdf_content' => $pdf->getStream(),
+                'pdf_content' => $pdf->getStream()->getContents(),
                 'orderId' => $orderId,
             ];
         }
@@ -575,16 +596,28 @@ class PostruController extends Controller
         $order['house_to']  = $normAddress[0]['house'] ?? null; // № дома получателя
         $order['corpus_to'] = $normAddress[0]['corpus'] ?? null; // корпус получателя
         $order['place_to']  = $normAddress[0]['place'] ?? null; // город получателя
-        $order['mass']      = 1000; // грамм (вес посылки)
-        $order['order_num'] = $request->orderid; //наш номер заказа на посылку, делаем = id заказа магазина
+        $order['mass']      = 250; // грамм (вес посылки)
+        $order['order_num'] = $request->orderid; //наш номер заказа на посылку, навверное можно= id заказа магазина
         $order['recipient_name'] = $request->name; // ФИО получателя
         $order['region_to'] = $normAddress[0]['region'] ?? null; // область получателя
         $order['street_to'] = $normAddress[0]['street'] ?? null; // улица получателя
         $order['room_to']   = $normAddress[0]['room'] ?? null; // квартира получателя
         $order['surname']   = $request->name; // фамилия получателя
-        //dd($order, gettype($order));
+        $order['payment']   = ($request->sum_payment == 0) ? null : $request->sum_payment * 100; // наложенный платеж
+        $order['mail-category'] = ($request->sum_payment == 0) ? 'WITH_DECLARED_VALUE' : 'WITH_DECLARED_VALUE_AND_CASH_ON_DELIVERY';
+        $order['insr-value'] = $request->sum * 100; // объявленная стоимость коп.
+        $order['phone']      = $request->phone; //тел. получателя
+        $order['comment']    = 'н/з '. $request->orderid; // комментарий
+        $order['mail-type']  = ($request->type_id == 1) ? 'POSTAL_PARCEL' : 'PARCEL_CLASS_1'; // вид РПО
 
-        $postOrder = $this->createOrderN($order); //dd($postOrder, gettype($postOrder));
+        //$order['fragile'] = true; //признак хрупкое
+        //$item = new Item();
+        //$item->setDescription('парфюм');
+        //$item->setQuantity(1);
+        //$item->setWeight(300);
+        //$order['goods'][0] = $item;
+
+        $postOrder = $this->createOrderN($order); //dd($postOrder);
 
         if (isset($postOrder['errors'])) {
             return ['error' => true, 'message' => 'error creating order by PostRu...'];
@@ -598,6 +631,36 @@ class PostruController extends Controller
 
     }
 
+    // если чекин (закрытие) партии уже сделан, возвращаем пдф-ку этой партии, если нет: -
+    // делаем checkin партии, получаем пдф-ку партии, обновляем запись реестра, возвращаем пдфку
+    public function checkin()
+    {
+        $todayRecord = PostruRegisters::whereDate('created_at', Carbon::today())->first();
+
+        if (!$todayRecord) {
+            return ['error' => true, 'message' => 'today record in PostRu registry not found'];
+        }
+
+        if ($todayRecord->checkin)
+        {
+            $pdf = $this->printF103($todayRecord->name, false);
+            if(is_object($pdf) && !$pdf->getError()) {
+                return ['pdf_content' => $pdf->getStream()->getContents()];
+            }
+
+            return ['error' => true, 'message' => 'error creating F103 pdf document'];
+        }
+
+        // делаем checkin партии, получаем пдф-ку партии, обновляем запись реестра, возвращаем пдфку
+        $pdf =  $this->printF103($todayRecord->name, true);
+        if(is_object($pdf) && !$pdf->getError()) {
+            $todayRecord->update(['checkin' => 1]);
+            return ['pdf_content' => $pdf->getStream()->getContents()];
+        }
+
+        return ['error' => true, 'message' => 'error creating F103 pdf document'];
+    }
+
     //249277, обл Калужская, р-н Думиничский, с Усты  д. 45
     //185002, Респ Карелия, г Петрозаводск, р-н Перевалка, ул Пархоменко, д. 33
     //678174, Респ Саха /Якутия/, у Мирнинский, г Мирный, ул Ойунского, д. 7, кв. 4
@@ -607,13 +670,18 @@ class PostruController extends Controller
     public function test()
     {
         $request = new Request();
-        $request->name = 'Петренко Петр Петрович';
-        $request->sum = '1490';
-        $request->orderid = '075_pdparis';
-        $request->address = '249277, обл Калужская, р-н Думиничский, с Усты  д. 45';
-        $request->phone = '79186542146';
-
+        $request->name = 'Иванов Иван Иваныч';
+        $request->sum = 1490;
+        $request->orderid = '085_pdparis';
+        $request->address = '155070, обл Ивановская, р-н Ильинский, с Аньково, ул Луговая, д. 4, кв. 2';
+        $request->phone = '74956542146';
+        $request->sum_payment = 1475; // наложенный платеж. (если = 0 нет наложенного платежа)
+        $request->type_id = 1; //?ВИД РПО. 1— POSTAL_PARCEL(Посылка "нестандартная"), 2— PARCEL_CLASS_1 (Посылка 1-го класса)
         $this->index($request);
+
+        //$this->checkin();
+
+        //$this->deleteOrdersInBatchByBarcode(80081765207695);
     }
 
 }

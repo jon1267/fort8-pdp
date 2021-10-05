@@ -11,5 +11,5 @@ class PostruRegisters extends Model
 
     protected $table = 'postru_registers';
 
-    protected $fillable = ['name', 'barcodes'];
+    protected $fillable = ['name', 'barcodes', 'checkin'];
 }
