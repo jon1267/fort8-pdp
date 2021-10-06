@@ -452,6 +452,21 @@ class AuctionController extends Controller
             $data['mess'] = 'Скидка на заказ '. $request->discount. ' грн.';
         }
 
+        switch ($request->paymethod) {
+            case 1:
+                $data['mess'] .= '  Он-лайн оплата (Visa, Mastercard, Apple Pay, Google Pay) - доставка бесплатно';
+                break;
+            case 2:
+                $data['mess'] .= ' Оплата наличными в терминале iBOX - доставка бесплатно';
+                break;
+            case 3:
+                $data['mess'] .= ' Оплата на Новой Почте при получении заказа';
+                break;
+            case 4:
+            default:
+                $data['mess'] .= ' Другой способ оплаты, пусть менеджер подскажет';
+        }
+
         $data['product'] = json_encode($auctionProducts);
 
         $response = json_decode($this->request($url, $data), true);
