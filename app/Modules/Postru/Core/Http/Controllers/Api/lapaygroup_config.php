@@ -1,10 +1,10 @@
 <?php
 
-$otpravkaAuth['token'] = 'FIsYIJDNhyY0lamsA1YxsZ0cbERUyoIe';
-$otpravkaAuth['key'] = 'Y3VzdG9tZXIuc2VydmljZS5wZHBhcmlzQGdtYWlsLmNvbTprbGVvcGF0cmEwNzA3';
+$otpravkaAuth['token'] = 'xhHzrQMx2AMHXyP6l4h5bhrusHEQtTFf';
+$otpravkaAuth['key']   = 'aW5mcmFtZTE5ODVAZ21haWwuY29tOlNsYXZhMDEwNzE5ODU=';
 
-$trackingAuth['login'] = 'customer.service.pdparis@gmail.com';
-$trackingAuth['password'] = 'kleopatra0707';
+$trackingAuth['login'] = 'inframe1985@gmail.com';
+$trackingAuth['password'] = 'Slava01071985';
 
 $authParams['auth']['otpravka'] = $otpravkaAuth;
 $authParams['auth']['tracking'] = $trackingAuth;

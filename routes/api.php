@@ -24,15 +24,16 @@ Route::get('/postru/address', [PostruController::class, 'address']);
 
 Route::post('/postru/create-order', [PostruController::class, 'createOrder']);
 Route::delete('/postru/delete-order/{ids}', [PostruController::class, 'deleteOrders']);
-
 Route::post('/postru/create-batch', [PostruController::class, 'createBatch']);
 Route::get('/postru/get-all-batches', [PostruController::class, 'getAllBatches']);
 Route::get('/postru/get-orders-batches/{batch}', [PostruController::class, 'getOrdersInBatch']);
 Route::delete('/postru/delete-orders-batch/{ids}', [PostruController::class, 'deleteOrdersInBatch']);
-Route::delete('/postru/delete/{barcode}', [PostruController::class, 'deleteOrdersInBatchByBarcode']);
-
 Route::get('/postru/print-pdf-forms/{id}', [PostruController::class, 'printPdfForms']);
 Route::get('/postru/print-f103/{batch}', [PostruController::class, 'printF103']);
 
+//
 Route::post('/postru/create', [PostruController::class, 'index']);
 Route::get('/postru/checkin', [PostruController::class, 'checkin']);
+Route::delete('/postru/delete/{barcode}', [PostruController::class, 'deleteOrdersInBatchByBarcode']);
+Route::get('/postru/print-pdf/{barcode}', [PostruController::class, 'printPdfByBarcode']);
+Route::post('/postru/calculate', [PostruController::class, 'shippingCost']);

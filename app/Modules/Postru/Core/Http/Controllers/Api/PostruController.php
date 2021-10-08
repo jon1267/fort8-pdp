@@ -12,7 +12,7 @@ use LapayGroup\RussianPost\AddressList;
 use LapayGroup\RussianPost\Entity\Order;
 use App\Modules\Postru\Core\Http\Requests\CreateOrderRequest;
 use App\Models\PostruRegisters;
-use LapayGroup\RussianPost\Entity\Item;
+use LapayGroup\RussianPost\ParcelInfo;
 
 class PostruController extends Controller
 {
@@ -360,7 +360,6 @@ class PostruController extends Controller
     public function moveOrdersToBatch(string $batch, $orderIds)
     {
         $data = is_array($orderIds) ? $orderIds : [$orderIds];
-        //dd($batch, $data);
 
         try {
             $otpravkaApi = new OtpravkaApi($config = include 'lapaygroup_config.php');
@@ -410,16 +409,7 @@ class PostruController extends Controller
 
         try {
             $otpravkaApi = new OtpravkaApi($config);
-            // Генерация печатных форм до формирования партии (после формирования партии $batchCreated = true)
             return $otpravkaApi->generateDocOrderPrintForm($orderId, OtpravkaApi::PRINT_FILE, $batchCreated, new DateTimeImmutable('now'), OtpravkaApi::PRINT_TYPE_THERMO);
-
-            //dd($result, $result->getStream()->getContents());
-            /*if (!$result->getError()) {
-                $savePdf = public_path().'\src\\'.'postru_'.$orderId.'.pdf';
-                file_put_contents($savePdf, $result->getStream());
-            }*/
-            //header("Content-type: application/pdf");
-            //print $result->getStream();
         }
         catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
             dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
@@ -484,7 +474,6 @@ class PostruController extends Controller
             $resultFind = $otpravkaApi->findOrderByRpo($barcode); //dd($resultFind);
 
             if(!count($resultFind)) {
-                //dd(['error' => true, 'message' => 'for barcode '. $barcode .' nothing not found']);
                 return ['error' => true, 'message' => 'for barcode '. $barcode .' nothing not found'];
             }
 
@@ -526,56 +515,35 @@ class PostruController extends Controller
         return response()->json($result);
     }
 
-    // реестр партий (состоят из заказов) ПочтыРу
-    //public function createOrUpdateRegister(Request $request)
     public function createOrUpdateRegister(array $data)
     {
-        $barcode = $data['barcode'];
-        $orderId = $data['order_id'];
-
-        $todayRecord = PostruRegisters::whereDate('created_at', Carbon::today())->first();
-        //dd($todayRecord); //return response()->json(['barcode' => $barcode, 'orderId' => $orderId, 'today' => $todayRecord]);
+        $barcode     = $data['barcode'];
+        $orderId     = $data['order_id'];
+        $todayRecord = PostruRegisters::where('checkin', 0)->first();
 
         if ($todayRecord) {
-            // add in Batch ($today->name) Post ru order, update record in postru_register,
-            //  add new barcode in text field barcodes, with already presents barcodes.
             $batchName = $todayRecord->name;
-            $result = $this->moveOrdersToBatch($batchName, $orderId);
-            //dd($result, gettype($result)); // тут если успех, то код ниже...
+            $this->moveOrdersToBatch($batchName, $orderId);
 
             $barcodes = json_decode($todayRecord->barcodes);
             $barcodes[] = $barcode;
             $barcodes = json_encode($barcodes);
-            $todayRecord->update(['barcodes' => $barcodes]); //in postru_register update barcodes field
+            $todayRecord->update(['barcodes' => $barcodes, 'checkin' => 0]);
 
         } else {
-            // create new Batch add in batch ($orderId), get batch name(1056), add record in postru_register
             $result = $this->createBatchN($orderId); //dd($result, gettype($result));
             if (isset($result['batches'][0]['batch-status']) && ($result['batches'][0]['batch-status'] === 'CREATED') ) {
-
                 PostruRegisters::create([
                     'name' => $result['batches'][0]['batch-name'],
                     'barcodes' => json_encode([$barcode]),
                 ]);
             }
-            // in postru_register created today record, with batch-name & barcodes fields
-            // $batchName = $result['batches'][0]['batch-name'];
         }
 
-        // тут (по идее) у нас есть N партии, id заказа (от почты ру)
-        // пробуем печатать пдф для посылки: отправитель/получатель (ф7п)
-        $pdf = $this->printPdfForms($orderId, true); //dd($pdf, $pdf->getStream()->getContents());
-
-        if(is_object($pdf) && !$pdf->getError())
-        {
-            return [
-                'ttn' => $barcode,
-                'pdf_content' => $pdf->getStream()->getContents(),
-                'orderId' => $orderId,
-            ];
-        }
-
-        return ['error' => true, 'message' => 'error creating f7p pdf form'];
+        return [
+            'ttn' => $barcode,
+            'orderId' => $orderId,
+        ];
     }
 
     // реализация того, что нам нужно в итоге ... //public function index(array $data)
@@ -583,20 +551,18 @@ class PostruController extends Controller
     {
         $address = $request->address; // $data['address'];
         $normAddress = $this->addressN($address);
-        //dd($normAddress, gettype($normAddress));
 
-        //if (!isset($normAddress[0]['validation-code']) && $normAddress[0]['validation-code'] !== 'VALIDATED')
         if (isset($normAddress['error']) && $normAddress['error']) {
             return ['error' => true, 'message' => 'address is not normalised by PostRu'];
         }
 
         $order['index_to'] = $normAddress[0]['index'] ?? null; // почт.инд. получателя
-        $order['postoffice_code'] = '308009'; // ~ почт.инд. отправляещего ОПС '308009','308011'
-        $order['given_name'] = 'PdPARIS'; // ~ имя (фио) отправителя посылки
+        $order['postoffice_code'] = '308011'; // ~ почт.инд. отправляещего ОПС '308009','308011'
+        $order['given_name'] = 'ИП Успешный Игорь'; // ~ имя (фио) отправителя посылки
         $order['house_to']  = $normAddress[0]['house'] ?? null; // № дома получателя
         $order['corpus_to'] = $normAddress[0]['corpus'] ?? null; // корпус получателя
         $order['place_to']  = $normAddress[0]['place'] ?? null; // город получателя
-        $order['mass']      = 250; // грамм (вес посылки)
+        $order['mass']      = $request->mass ? $request->mass : 300; // грамм (вес посылки)
         $order['order_num'] = $request->orderid; //наш номер заказа на посылку, навверное можно= id заказа магазина
         $order['recipient_name'] = $request->name; // ФИО получателя
         $order['region_to'] = $normAddress[0]['region'] ?? null; // область получателя
@@ -610,55 +576,134 @@ class PostruController extends Controller
         $order['comment']    = 'н/з '. $request->orderid; // комментарий
         $order['mail-type']  = ($request->type_id == 1) ? 'POSTAL_PARCEL' : 'PARCEL_CLASS_1'; // вид РПО
 
-        //$order['fragile'] = true; //признак хрупкое
-        //$item = new Item();
-        //$item->setDescription('парфюм');
-        //$item->setQuantity(1);
-        //$item->setWeight(300);
-        //$order['goods'][0] = $item;
-
         $postOrder = $this->createOrderN($order); //dd($postOrder);
 
         if (isset($postOrder['errors'])) {
             return ['error' => true, 'message' => 'error creating order by PostRu...'];
         }
 
-        //dd($postOrder);//заказы надеюсь создаем по одному...
         return $this->createOrUpdateRegister([
             'barcode'  => $postOrder['orders'][0]['barcode'],
             'order_id' => $postOrder['orders'][0]['result-id'],
         ]);
-
     }
 
-    // если чекин (закрытие) партии уже сделан, возвращаем пдф-ку этой партии, если нет: -
-    // делаем checkin партии, получаем пдф-ку партии, обновляем запись реестра, возвращаем пдфку
     public function checkin()
     {
-        $todayRecord = PostruRegisters::whereDate('created_at', Carbon::today())->first();
+        $todayRecord = PostruRegisters::where('checkin', 0)->first();
 
-        if (!$todayRecord) {
-            return ['error' => true, 'message' => 'today record in PostRu registry not found'];
-        }
+        if ( ! $todayRecord) {
 
-        if ($todayRecord->checkin)
-        {
+            $todayRecord = PostruRegisters::where('checkin', 1)->orderBy('created_at', 'DESC')->first();
+
+            if ( ! $todayRecord) {
+                return ['error' => true, 'message' => 'today record in PostRu registry not found'];
+            }
+
             $pdf = $this->printF103($todayRecord->name, false);
-            if(is_object($pdf) && !$pdf->getError()) {
-                return ['pdf_content' => $pdf->getStream()->getContents()];
+            if (is_object($pdf) && !$pdf->getError()) {
+                $todayRecord->update(['checkin' => 1]);
+                header("Content-type: application/pdf");
+                print $pdf->getStream()->getContents();
             }
 
             return ['error' => true, 'message' => 'error creating F103 pdf document'];
         }
 
-        // делаем checkin партии, получаем пдф-ку партии, обновляем запись реестра, возвращаем пдфку
-        $pdf =  $this->printF103($todayRecord->name, true);
-        if(is_object($pdf) && !$pdf->getError()) {
+        $pdf = $this->printF103($todayRecord->name, true);
+        if (is_object($pdf) && !$pdf->getError()) {
             $todayRecord->update(['checkin' => 1]);
-            return ['pdf_content' => $pdf->getStream()->getContents()];
+            header("Content-type: application/pdf");
+            print $pdf->getStream()->getContents();
         }
 
         return ['error' => true, 'message' => 'error creating F103 pdf document'];
+    }
+
+    public function printPdfByBarcode($barcode)
+    {
+        try {
+            $otpravkaApi = new OtpravkaApi($config = include 'lapaygroup_config.php');
+            $resultFind = $otpravkaApi->findOrderByRpo($barcode);
+
+            if(!count($resultFind)) {
+                return ['error' => true, 'message' => 'for barcode '. $barcode .' nothing not found'];
+            }
+
+            $pdf = $this->printPdfForms($resultFind[0]['id'], true);
+
+            if (is_object($pdf) && !$pdf->getError()) {
+                header("Content-type: application/pdf");
+                print $pdf->getStream()->getContents();
+                die();
+            }
+        }
+
+        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
+            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
+        }
+
+        catch (\Exception $e) {
+            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
+        }
+    }
+
+    // Расчет стоимости пересылки (Упрощенная версия)
+    public function shippingCost(Request $request)
+    {
+        $address = $request->address; //строка ненормализов. адреса
+        $normAddress = $this->addressN($address); //нормализуем адрес
+
+        if (isset($normAddress['error']) && $normAddress['error']) {
+            return ['error' => true, 'message' => 'address is not normalised by PostRu'];
+        }
+
+        $weight = $request->mass;  // грамм (вес посылки);
+        $mailCategory = ($request->sum_payment == 0) ? 'WITH_DECLARED_VALUE' : 'WITH_DECLARED_VALUE_AND_CASH_ON_DELIVERY';
+        $indexFrom = '308011';
+        $declaredValue = $request->sum*100;
+
+        try {
+            $otpravkaApi = new OtpravkaApi($config = include 'lapaygroup_config.php');
+
+            // данные для расчета вариант1
+            $variant1 = new ParcelInfo();
+            $variant1->setIndexFrom($indexFrom); // Индекс пункта сдачи
+            $variant1->setIndexTo($normAddress[0]['index']);
+            $variant1->setMailCategory($mailCategory); // с декларир. стоим., с (или без) налож. платежем
+            $variant1->setMailType('POSTAL_PARCEL'); // вид РПО
+            $variant1->setWeight($weight);
+            $variant1->setDeclaredValue($declaredValue);
+
+            $tariffVariant1 = $otpravkaApi->getDeliveryTariff($variant1);
+            $postalParsel = $tariffVariant1->getTotalRate()/100 . ' руб.'; //dd($postalParsel, $tariffVariant1);
+
+            // данные для расчета вариант2
+            $variant2 = new ParcelInfo();
+            $variant2->setIndexFrom($indexFrom); // Индекс пункта сдачи
+            $variant2->setIndexTo($normAddress[0]['index']);
+            $variant2->setMailCategory($mailCategory); // с декларир. стоим., с (или без) налож. платежем
+            $variant2->setMailType('PARCEL_CLASS_1'); // вид РПО
+            $variant2->setWeight($weight);
+            $variant2->setDeclaredValue($declaredValue);
+
+            $tariffVariant2 = $otpravkaApi->getDeliveryTariff($variant2);
+            $parselClass1 = $tariffVariant2->getTotalRate()/100 . ' руб.'; //dd($parselClass1, $tariffVariant2);
+
+
+            return response()->json([
+                'POSTAL_PARCEL' => $postalParsel,
+                'PARCEL_CLASS_1'=> $parselClass1,
+            ]);
+        }
+
+        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
+            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
+        }
+
+        catch (\Exception $e) {
+            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
+        }
     }
 
     //249277, обл Калужская, р-н Думиничский, с Усты  д. 45
@@ -682,6 +727,7 @@ class PostruController extends Controller
         //$this->checkin();
 
         //$this->deleteOrdersInBatchByBarcode(80081765207695);
+        
     }
 
 }
