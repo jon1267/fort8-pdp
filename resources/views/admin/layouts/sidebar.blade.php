@@ -154,6 +154,37 @@
                 </li>
                 <!-- sub menu ... -->
 
+                <!-- sub menu registers -->
+                @php
+                    $currentRoute = \Illuminate\Support\Facades\Route::currentRouteName();
+                    $isRegisterRoutes = ($currentRoute === 'admin.registers.index');
+                @endphp
+                <li class="nav-item {{ $isRegisterRoutes ? 'menu-open' : ''}}">
+                    <a href="#" class="nav-link {{ $isRegisterRoutes ? 'active' : ''}}">
+                        <i class="nav-icon fas fa-archive"></i>
+                        <p>
+                            Реестры
+                            <i class="fas fa-angle-left right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('admin.registers.index') }}" class="nav-link {{$currentRoute === 'admin.registers.index' ? 'active' : ''}}">
+                                <!--<i class="fas fa-clipboard-check nav-icon ml-2"></i>-->
+                                <i class="fas fa-mail-bulk nav-icon ml-2"></i>
+                                <p>Почта России</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link ">
+                                <i class="fas fa-arrows-alt nav-icon ml-2"></i>
+                                <p>Новая Почта</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <!-- sub menu registers ... -->
+
                 <li class="nav-item">
 
                     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">

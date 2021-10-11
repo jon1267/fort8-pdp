@@ -22,6 +22,7 @@ return [
         app_path('Modules/Operators/Core/Views'),
         app_path('Modules/Clients/Core/Views'),
         app_path('Modules/Clients/Payments/Core/Views'),
+        app_path('Modules/Postru/Core/Views'),
     ],
 
     /*
