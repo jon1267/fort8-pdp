@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use DateTimeImmutable;
 use Illuminate\Http\Request;
 use App\Modules\Postru\Core\Services\PostRu;
+use LapayGroup\RussianPost\Enum\PostType;
 use LapayGroup\RussianPost\Providers\OtpravkaApi;
 use LapayGroup\RussianPost\AddressList;
 use LapayGroup\RussianPost\Entity\Order;
@@ -157,7 +158,7 @@ class PostruController extends Controller
         // if address not validated, return empty array
         if(is_array($result[0]) && isset($result[0]['validation-code']) && $result[0]['validation-code']!=='VALIDATED') {
             //return response()->json([]);
-            return ['error' => true, 'message' => 'address is not normalised by PostRu'];
+            return ['error' => true, 'message' => 'адрес не нормализован почтой Росии'];
         }
 
         return $result; //echo '--- нормализация аддреса ---<br>'.'<pre>'.print_r($result,1).'</pre>';
@@ -553,7 +554,7 @@ class PostruController extends Controller
         $normAddress = $this->addressN($address);
 
         if (isset($normAddress['error']) && $normAddress['error']) {
-            return ['error' => true, 'message' => 'address is not normalised by PostRu'];
+            return ['error' => true, 'message' => 'адрес не нормализован почтой Росии'];
         }
 
         $order['index_to'] = $normAddress[0]['index'] ?? null; // почт.инд. получателя
@@ -576,10 +577,13 @@ class PostruController extends Controller
         $order['comment']    = 'н/з '. $request->orderid; // комментарий
         $order['mail-type']  = ($request->type_id == 1) ? 'POSTAL_PARCEL' : 'PARCEL_CLASS_1'; // вид РПО
 
-        $postOrder = $this->createOrderN($order); //dd($postOrder);
+        $postOrder = $this->createOrderN($order); //dd($postOrder, $postOrder['errors'][0]['error-codes']);
 
         if (isset($postOrder['errors'])) {
-            return ['error' => true, 'message' => 'error creating order by PostRu...'];
+            return [
+                'error' => true,
+                'message' => $this->getPostruOrderErrors($postOrder),
+            ];
         }
 
         return $this->createOrUpdateRegister([
@@ -597,7 +601,7 @@ class PostruController extends Controller
             $todayRecord = PostruRegisters::where('checkin', 1)->orderBy('created_at', 'DESC')->first();
 
             if ( ! $todayRecord) {
-                return ['error' => true, 'message' => 'today record in PostRu registry not found'];
+                return ['error' => true, 'message' => 'текущая запись реестра почты России не найдена'];
             }
 
             $pdf = $this->printF103($todayRecord->name, false);
@@ -607,7 +611,11 @@ class PostruController extends Controller
                 print $pdf->getStream()->getContents();
             }
 
-            return ['error' => true, 'message' => 'error creating F103 pdf document'];
+            return ['error' => true, 'message' => 'ошибка создания F103 pdf документа'];
+        }
+
+        if ($todayRecord->created_at->format('Y-m-d') !== Carbon::today()->format('Y-m-d')) {
+            $this->changeBatchDay($todayRecord->name);
         }
 
         $pdf = $this->printF103($todayRecord->name, true);
@@ -617,7 +625,7 @@ class PostruController extends Controller
             print $pdf->getStream()->getContents();
         }
 
-        return ['error' => true, 'message' => 'error creating F103 pdf document'];
+        return ['error' => true, 'message' => 'ошибка создания F103 pdf документа'];
     }
 
     public function printPdfByBarcode($barcode)
@@ -649,13 +657,14 @@ class PostruController extends Controller
     }
 
     // Расчет стоимости пересылки (Упрощенная версия)
-    public function shippingCost(Request $request)
+    // и времени доставки для POSILKA & POSILKA_ONE_CLASS
+    public function shippingCalc(Request $request)
     {
         $address = $request->address; //строка ненормализов. адреса
         $normAddress = $this->addressN($address); //нормализуем адрес
 
         if (isset($normAddress['error']) && $normAddress['error']) {
-            return ['error' => true, 'message' => 'address is not normalised by PostRu'];
+            return ['error' => true, 'message' => 'адрес не нормализован почтой Росии'];
         }
 
         $weight = $request->mass;  // грамм (вес посылки);
@@ -676,7 +685,10 @@ class PostruController extends Controller
             $variant1->setDeclaredValue($declaredValue);
 
             $tariffVariant1 = $otpravkaApi->getDeliveryTariff($variant1);
-            $postalParsel = $tariffVariant1->getTotalRate()/100 . ' руб.'; //dd($postalParsel, $tariffVariant1);
+            $period1 = $otpravkaApi->getDeliveryPeriod(PostType::POSILKA, $indexFrom, $normAddress[0]['index'] );
+            $periodText1 = (is_array($period1['delivery'])) ? ' ('.$period1['delivery']['min'].'-'.$period1['delivery']['max'] .' дней)':'';
+            $postalParsel = (($tariffVariant1->getTotalRate() + $tariffVariant1->getTotalNds()) /100 ) . ' руб.'.$periodText1;
+            //dd($postalParsel, $tariffVariant1, $period1);
 
             // данные для расчета вариант2
             $variant2 = new ParcelInfo();
@@ -688,13 +700,52 @@ class PostruController extends Controller
             $variant2->setDeclaredValue($declaredValue);
 
             $tariffVariant2 = $otpravkaApi->getDeliveryTariff($variant2);
-            $parselClass1 = $tariffVariant2->getTotalRate()/100 . ' руб.'; //dd($parselClass1, $tariffVariant2);
+            $period2 = $otpravkaApi->getDeliveryPeriod(PostType::POSILKA_ONE_CLASS, $indexFrom, $normAddress[0]['index'] );
+            $periodText2 = (is_array($period2['delivery'])) ?' ('.$period2['delivery']['min'].'-'.$period2['delivery']['max'] .' дней)':'';
+            $parselClass1 = (($tariffVariant2->getTotalRate() + $tariffVariant2->getTotalNds()) /100 ) . ' руб.'.$periodText2;
+            //dd($parselClass1, $tariffVariant2, $period2);
 
 
             return response()->json([
                 'POSTAL_PARCEL' => $postalParsel,
                 'PARCEL_CLASS_1'=> $parselClass1,
             ]);
+        }
+
+        catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
+            dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
+        }
+
+        catch (\Exception $e) {
+            dd('General Exception: '. $e->getMessage());// Обработка нештатной ситуации
+        }
+    }
+
+    //получение всех ошибок, приходящих от почты россии (по созданию заказа)
+    public function getPostruOrderErrors(array $errors)
+    {
+        $result = '';
+        $errorsParsed = $errors['errors'][0]['error-codes'];
+
+        if (!is_array($errorsParsed) || !count($errors)) return null;
+
+        foreach ($errorsParsed as $error)
+        {
+            $result .= $error['description'].'. ';
+        }
+        return $result;
+    }
+
+    // Изменение дня отправки в почтовое отделение (для формир. F103 по старым? пачкам)
+    public function changeBatchDay(string $batch)
+    {
+        try {
+            $otpravkaApi = new OtpravkaApi($config = include 'lapaygroup_config.php');
+            return $otpravkaApi->changeBatchSendingDay($batch, new DateTimeImmutable(Carbon::today()->format('Y-m-d')));
+            //dd($result);//true, или ошибка почты ру- ресурс не найден,(~ все отправления уже отправлены)
+        }
+        catch (\InvalidArgumentException $e) {
+            dd('InvalidArgumentException: '. $e->getMessage());// Обработка ошибки
         }
 
         catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {

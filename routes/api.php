@@ -36,4 +36,4 @@ Route::post('/postru/create', [PostruController::class, 'index']);
 Route::get('/postru/checkin', [PostruController::class, 'checkin']);
 Route::delete('/postru/delete/{barcode}', [PostruController::class, 'deleteOrdersInBatchByBarcode']);
 Route::get('/postru/print-pdf/{barcode}', [PostruController::class, 'printPdfByBarcode']);
-Route::post('/postru/calculate', [PostruController::class, 'shippingCost']);
+Route::post('/postru/calculate', [PostruController::class, 'shippingCalc']);

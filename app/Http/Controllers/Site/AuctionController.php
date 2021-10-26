@@ -427,6 +427,7 @@ class AuctionController extends Controller
         $data['city']  = $request->city;
         $data['email']  = $request->email;
         $data['mess']  = $request->paymethod.'-'.$request->discount;
+        $data['paymethod'] = $request->paymethod;
         $data['adres'] = $request->postoffice;
         $data['adv']  = 335;
         $data['auction'] = 1;
