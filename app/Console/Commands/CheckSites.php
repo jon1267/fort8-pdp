@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 
@@ -23,25 +24,31 @@ class CheckSites extends Command
     protected $description = 'Check sites access, its responses & ability create order';
 
     private $sites = [
-        'https://pdparis.net/', 'https://parfumdeparis.biz/','https://pdparis.ru/','https://pdparis.org/',
-        'https://pd-paris.ru/','http://pdp-only.ru/','https://pdp-paris.ru/', 'https://pdparis.com/',
+        'https://pdparis.net/',
+        'https://parfumdeparis.biz/',
+        'https://pdparis.ru/',
+        'https://pdparis.org/',
+        'https://pd-paris.ru/',
+        'http://pdp-only.ru/',
+        'https://pdp-paris.ru/',
+        'https://pdparis.com/',
     ];
 
     private $postmaster = 'korobka.dima@gmail.com';
 
     private $testOrder = [
-        'name' => 'тестовый заказ',
-        'email' => 'test@test.com',
-        'tel' => '+38 (000) 000-00-00',
-        'adv' => 218,
+        'name'   => 'тестовый заказ',
+        'email'  => 'test@test.com',
+        'tel'    => '+38 (000) 000-00-00',
+        'adv'    => 218,
         'basket' => [
             0 => [
-                'art' => 'W065-30',
-                'qty' => 1,
+                'art'   => 'W065-30',
+                'qty'   => 1,
                 'price' => 590,
-                'sale' => 590,
-                'vol' => 30,
-                'name' => 'No 5 ',
+                'sale'  => 590,
+                'vol'   => 30,
+                'name'  => 'No 5 ',
                 'bname' => 'Chanel',
                 'total' => 590,
             ],
@@ -49,9 +56,9 @@ class CheckSites extends Command
     ];
 
     private $oldOrder = [
-        'tel' => '+38 (000) 000-00-00',
-        'comment'=> 'test order, old sites',
-        'adv' => 218,
+        'tel'     => '+38 (000) 000-00-00',
+        'comment' => 'тестовый заказ',
+        'adv'     => 218,
     ];
 
     private $oldBasket = ['id' => 6, 'art' => 'W027', 'price' => 390, 'volume' => 100];
@@ -73,34 +80,29 @@ class CheckSites extends Command
      */
     public function handle()
     {
-        foreach ($this->sites as $site)
-        {
+        foreach ($this->sites as $site) {
+
             $result = $this->curlGet($site);
 
             if ($this->badSite($result)) {
-                ////// ---  Mail::to($this->postmaster)->send();
                 Mail::raw($site .' - не работает, пожалуйста проверьте вручную.' , function ($mess)  {
                     $mess->to($this->postmaster);
                     $mess->subject('Проверка сайтов');
                 });
-                //echo $site . ' - not work'.'<br>';
                 continue;
             }
 
-
-            if (strpos( $result['response'],'<div class="vue">') && $this->badApiNew($site)) {
+            if (strpos( $result['response'],'<div class="vue">') && ($this->badApiNew($site) OR $this->badApiNew2($site))) {
                 // новый сайт
                 Mail::raw($site .' - не работает api, пожалуйста проверьте вручную.' , function ($mess)  {
                     $mess->to($this->postmaster);
                     $mess->subject('Проверка сайтов');
                 });
-                //echo $site . ' - api not work (new site)'.'<br>';
                 continue;
             }
 
             if (strpos( $result['response'],'made in France')) {
                 $oldOrder = $this->curlPostSession($site.'cart/add_volume', $this->oldBasket);
-                //dd($oldOrder);
                 if ($oldOrder['status'] === 200 && isset($oldOrder['cookies']['PHPSESSID']) && strlen($oldOrder['cookies']['PHPSESSID'])) {
 
                     if ($this->badApiOld($site, $oldOrder['cookies']['PHPSESSID'])) {
@@ -108,32 +110,54 @@ class CheckSites extends Command
                             $mess->to($this->postmaster);
                             $mess->subject('Проверка сайтов');
                         });
-                        //echo $site . ' - api not work (old site)'.'<br>';
-                        continue;
                     }
-
-
                 }
 
             }
 
+            $this->info($site . ' работает вск ок');
         }
-        //echo 'all pass at: '. date('Y-m-d H:i:s');
+
+        DB::connection('mysql2')->table('landing_orders')->where('phone', '380000000000')->delete();
+
         return 0;
     }
 
+    /**
+     * @param $site
+     * @return bool
+     */
     public function badApiNew($site)
     {
-        $apiTest = $this->curlPost($site.'api/store', $this->testOrder); //dd($apiTest, $site.'api/store');
+        $apiTest = $this->curlPost($site.'api/store', $this->testOrder);
         return  !($apiTest['status'] === 200) && is_numeric($apiTest['response']);
     }
 
+    /**
+     * @param $site
+     * @return bool
+     */
+    public function badApiNew2($site)
+    {
+        $apiTest = $this->curlGet($site.'api/samples');
+        return $apiTest['status'] !== 200 OR strlen($apiTest['response']) < 100;
+    }
+
+    /**
+     * @param $site
+     * @param $phpSessionId
+     * @return bool
+     */
     public function badApiOld($site, $phpSessionId)
     {
         $apiTest = $this->curlPostSession($site.'cart/store', $this->oldOrder,0, $phpSessionId);
         return  !($apiTest['status'] === 200) && strpos($apiTest['response'], 'ok');
     }
 
+    /**
+     * @param array $result
+     * @return bool
+     */
     private function badSite(array $result)
     {
         $okStatus = in_array($result['status'], [200, 302], true );
@@ -142,9 +166,12 @@ class CheckSites extends Command
         return !($okStatus && $okLength);
     }
 
+    /**
+     * @param $link
+     * @return array
+     */
     private function curlGet($link)
     {
-
         $curl = curl_init($link);
         curl_setopt($curl, CURLOPT_POST, false);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -159,8 +186,14 @@ class CheckSites extends Command
         return ['response' => $response, 'status' => $status];
     }
 
-    public function curlPost($link, $data = [], $isJsonData = 0) {
-
+    /**
+     * @param $link
+     * @param array $data
+     * @param int $isJsonData
+     * @return array
+     */
+    public function curlPost($link, $data = [], $isJsonData = 0)
+    {
         $curl = curl_init($link);
 
         curl_setopt($curl, CURLOPT_POST, true);
@@ -180,8 +213,15 @@ class CheckSites extends Command
         return ['response' => $response, 'status' => $status ];
     }
 
-    public function curlPostSession($link, $data = [], $isJsonData = 0, $phpSessionId=null) {
-
+    /**
+     * @param $link
+     * @param array $data
+     * @param int $isJsonData
+     * @param null $phpSessionId
+     * @return array
+     */
+    public function curlPostSession($link, $data = [], $isJsonData = 0, $phpSessionId=null)
+    {
         $curl = curl_init($link);
 
         curl_setopt($curl, CURLOPT_COOKIESESSION,  true);
@@ -200,7 +240,6 @@ class CheckSites extends Command
         $response = curl_exec($curl); //json_decode(curl_exec($this->curl));
         $status = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        // multi-cookie variant contributed by @Combuster in comments
         preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', $response, $matches);
         $cookies = [];
         foreach($matches[1] as $item) {

@@ -245,6 +245,7 @@ class PostruController extends Controller
             //$order->setMailCategory('WITH_DECLARED_VALUE_AND_CASH_ON_DELIVERY'); //для объявлен. стоим. и Налож Плат.
             $order->setMailCategory($orderData['mail-category']);
             $order->setMailType($orderData['mail-type']);
+            $order->setCompletenessChecking($orderData['completeness-checking']); // проверка комплектности.
             $orders[] = $order->asArr(); //dd($orders);
 
             $result = $otpravkaApi->createOrdersV2($orders);
@@ -404,13 +405,15 @@ class PostruController extends Controller
     // Возвращает pdf файл, который может содержать в зависимости от типа отправления:
     // форму ф7п (посылка, посылка-онлайн, бандероль, курьер-онлайн) или
     // форму Е-1 (EMS, Бизнес курьер, Бизнес курьер экспресс) или конверт (письмо заказное).
+    // ... ПЕРЕДЕЛАНО, чтоб печатались не все формы, а только F7p
     public function printPdfForms($orderId, $batchCreated = false)
     {
-        $config = include 'lapaygroup_config.php';
-
         try {
-            $otpravkaApi = new OtpravkaApi($config);
-            return $otpravkaApi->generateDocOrderPrintForm($orderId, OtpravkaApi::PRINT_FILE, $batchCreated, new DateTimeImmutable('now'), OtpravkaApi::PRINT_TYPE_THERMO);
+            $otpravkaApi = new OtpravkaApi($config = include 'lapaygroup_config.php');
+
+            //return $otpravkaApi->generateDocOrderPrintForm($orderId, OtpravkaApi::PRINT_FILE, $batchCreated, new DateTimeImmutable('now'), OtpravkaApi::PRINT_TYPE_THERMO);
+            // Генерация не всех печатных форм, а только F7p (пдф с адресами от кого, и кому/куда)
+            return $otpravkaApi->generateDocF7p($orderId, OtpravkaApi::PRINT_FILE, new DateTimeImmutable('now'), OtpravkaApi::PRINT_TYPE_THERMO);
         }
         catch (\LapayGroup\RussianPost\Exceptions\RussianPostException $e) {
             dd('LapayGroup RussianPostException: '. $e->getMessage());// Обработка ошибочного ответа от API ПРФ
@@ -547,7 +550,7 @@ class PostruController extends Controller
         ];
     }
 
-    // реализация того, что нам нужно в итоге ... //public function index(array $data)
+    // создание заказа для почты россии + доб. данных в наш реестр
     public function index(Request $request)
     {
         $address = $request->address; // $data['address'];
@@ -576,6 +579,7 @@ class PostruController extends Controller
         $order['phone']      = $request->phone; //тел. получателя
         $order['comment']    = 'н/з '. $request->orderid; // комментарий
         $order['mail-type']  = ($request->type_id == 1) ? 'POSTAL_PARCEL' : 'PARCEL_CLASS_1'; // вид РПО
+        $order['completeness-checking'] = $request->completeness ? true : false; // проверка комплектности.
 
         $postOrder = $this->createOrderN($order); //dd($postOrder, $postOrder['errors'][0]['error-codes']);
 
@@ -671,6 +675,7 @@ class PostruController extends Controller
         $mailCategory = ($request->sum_payment == 0) ? 'WITH_DECLARED_VALUE' : 'WITH_DECLARED_VALUE_AND_CASH_ON_DELIVERY';
         $indexFrom = '308011';
         $declaredValue = $request->sum*100;
+        $complitness = $request->completeness ? true : false;
 
         try {
             $otpravkaApi = new OtpravkaApi($config = include 'lapaygroup_config.php');
@@ -683,6 +688,7 @@ class PostruController extends Controller
             $variant1->setMailType('POSTAL_PARCEL'); // вид РПО
             $variant1->setWeight($weight);
             $variant1->setDeclaredValue($declaredValue);
+            $variant1->setCompletenessChecking($complitness);
 
             $tariffVariant1 = $otpravkaApi->getDeliveryTariff($variant1);
             $period1 = $otpravkaApi->getDeliveryPeriod(PostType::POSILKA, $indexFrom, $normAddress[0]['index'] );
@@ -698,6 +704,7 @@ class PostruController extends Controller
             $variant2->setMailType('PARCEL_CLASS_1'); // вид РПО
             $variant2->setWeight($weight);
             $variant2->setDeclaredValue($declaredValue);
+            $variant2->setCompletenessChecking($complitness);
 
             $tariffVariant2 = $otpravkaApi->getDeliveryTariff($variant2);
             $period2 = $otpravkaApi->getDeliveryPeriod(PostType::POSILKA_ONE_CLASS, $indexFrom, $normAddress[0]['index'] );

@@ -683,6 +683,7 @@ class AuctionController extends Controller
                 'last_name' => $client->last_name,
                 'phone' => $client->phone,
                 'sum' => $client->sum,
+                'sum_bonus' => $client->sum_bonus,
                 'referral_code' => $client->referral_code,
                 'active' => $client->active,
                 'transactions' => $clientTransactions,
