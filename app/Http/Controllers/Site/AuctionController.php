@@ -5,9 +5,7 @@ namespace App\Http\Controllers\Site;
 use App\Http\Controllers\Controller;
 use App\Models\ClientProduct;
 use App\Models\ClientPaymentRequest;
-use App\Models\ProductVariant;
 use App\Models\Setting;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Models\Aroma;
 use App\Models\Brand;
@@ -23,10 +21,9 @@ use App\Http\Requests\AuctionSetDiscountRequest;
 use App\Http\Requests\AuctionAddCommentRequest;
 use App\Http\Requests\AuctionClientBalanceRequest;
 use App\Http\Requests\AuctionAddClientPaymentRequest;
+use App\Http\Requests\AuctionSendNotificationRequest;
 use App\Modules\Clients\Core\Jobs\SaveClientSumHistory;
 use App\Services\Sms\Sms;
-use App\Services\Import\Csv;
-use Illuminate\Support\Facades\Http;
 
 class AuctionController extends Controller
 {
@@ -710,6 +707,27 @@ class AuctionController extends Controller
             ->toArray(); // dd($clientPaymentRequests);
 
         return response()->json($clientPaymentRequests);
+    }
+
+    // route /auction/sendNotification (post request with key, userphone & text)
+    public function sendNotification(AuctionSendNotificationRequest $request)
+    {
+        if ($request->key !== self::API_KEY) abort(404);
+
+        $userphone = phone_format($request->userphone);
+        $client = Client::where('phone', $userphone)->first();
+
+        if (!$client || (!$client->active)) {
+            return response()->json(['success'=>false, 'reason'=>'client not exist or not active']);
+        }
+
+        $smsSend = $this->sms->sendSms($userphone, trim($request->text));
+
+        if (!$smsSend) {
+            return response()->json(['success'=>false, 'reason'=>'no transport']);
+        }
+
+        return response()->json(['success'=>true, 'message'=>'sms ok']);
     }
 
     // post curl

@@ -5,7 +5,7 @@ namespace App\Modules\Novaposhta\Core\Services;
 class NewPost
 {
     const NEW_POST_JSON = 'https://api.novaposhta.ua/v2.0/json/';
-    const API_KEY = '70e04e8b5c00c85f2a8fb120b5cf4ba4';
+    const API_KEY = '1d20ddd956971c092fdcf4685bc68ad9';
 
 
     /**

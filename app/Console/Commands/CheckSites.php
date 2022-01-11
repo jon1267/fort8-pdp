@@ -116,9 +116,9 @@ class CheckSites extends Command
             }
 
             $this->info($site . ' работает вск ок');
-        }
 
-        DB::connection('mysql2')->table('landing_orders')->where('phone', '380000000000')->delete();
+            DB::connection('mysql2')->table('landing_orders')->where('phone', '380000000000')->delete();
+        }
 
         return 0;
     }

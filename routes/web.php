@@ -60,6 +60,8 @@ Route::post('/auction/addComment', [AuctionController::class, 'addComment'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
 Route::post('/auction/addClientPaymentRequest', [AuctionController::class, 'addClientPaymentRequest'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
+Route::post('/auction/sendNotification', [AuctionController::class, 'sendNotification'])
+    ->withoutMiddleware([VerifyCsrfToken::class]);
 
 Route::get('/auction/getOrders', [AuctionController::class, 'getOrders']);
 Route::get('/auction/getPayStatusList',  [AuctionController::class, 'getPayStatusList']);
