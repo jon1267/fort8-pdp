@@ -546,6 +546,55 @@ class AuctionController extends Controller
         return response()->json($out); //dd($out);
     }
 
+    // route /auction/getOrderedProducts
+    public function getOrderedProducts(Request $request)
+    {
+        if ($request->key !== self::API_KEY) abort(404);
+
+        $userphone = phone_format($request->userphone);
+        $client = Client::where('phone', $userphone)->first();
+
+        if (!$client || (!$client->active)) {
+            return response()->json(['success'=>false, 'reason'=>'client not exist or not active']);
+        }
+
+        //$url = 'http://kleopatra0707.com/api/auction/orders?';// ???
+        $url = 'http://crm.kleopatra0707.com/auction/getOrders?';
+        $data = [];
+        $data['key'] = $request->key;
+        $data['userphone'] = $userphone;
+
+        $out = json_decode(file_get_contents($url . http_build_query($data)));
+        //dd($out, gettype($out));
+
+        $result = [];
+        if (is_array($out) && count($out)) {
+            foreach ($out as $items) {
+                foreach ($items as $key => $value) {
+                    if ($key === 'datereceived' && $value ==='0000-00-00 00:00:00') {
+                        break;
+                    }
+                    if ($key === 'datereceived') {
+                        $datereceived = $value;
+                    }
+                    if ($key === 'products') {
+                        foreach ($value as $products) {
+                            foreach ($products as $k => $v) {
+                                if ($k === 'prodid') {
+                                    $result[] = ['art' => $v, 'received' => $datereceived ];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //dd($result);//полная отдача, с дублями
+        //dd(array_values(array_unique($result, SORT_REGULAR)));
+        return response()->json(array_values(array_unique($result, SORT_REGULAR)));
+    }
+
     // route /auction/getPayStatusList
     public function getPayStatusList(Request $request)
     {

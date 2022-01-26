@@ -29,6 +29,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('backup:run --only-db')->hourly();
         $schedule->command('backup:clean')->hourly();
         $schedule->command('check:sites')->everyFiveMinutes();
+        $schedule->command('order:received-notify')->daily(); //run task every day at midnight
+        $schedule->command('order:not-pay-notify')->hourly();
     }
 
     /**

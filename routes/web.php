@@ -17,7 +17,6 @@ use App\Modules\Operators\Core\Http\Controllers\Admin\OperatorController;
 use App\Modules\Clients\Core\Http\Controllers\Admin\ClientsController;
 use App\Modules\Clients\Payments\Core\Http\Controllers\PaymentsController;
 use App\Modules\Postru\Core\Http\Controllers\Admin\PostruRegisterController;
-use App\Modules\Postru\Core\Http\Controllers\Api\PostruController;
 
 // вход в админку
 Route::get('/', function () {
@@ -70,11 +69,12 @@ Route::get('/auction/getClientBalance', [AuctionController::class, 'getClientBal
 Route::get('/auction/getSettings', [AuctionController::class, 'getSettings']);
 Route::get('/auction/getClientDetail', [AuctionController::class, 'getClientDetail']);
 Route::get('/auction/getClientPaymentRequestList', [AuctionController::class, 'getClientPaymentRequestList']);
+Route::get('/auction/getOrderedProducts', [AuctionController::class, 'getOrderedProducts']);
 
 Route::get('/xml/prom.xml', [AggregatorController::class, 'promUa']);
 Route::get('/xml/google-local', [AggregatorController::class, 'googleLocal']);
 Route::get('/xml/google-original', [AggregatorController::class, 'googleOriginal']);
-//Route::get('/test', [PostruController::class, 'test']);
+//Route::get('/test', [AuctionController::class, 'test']);
 
 Auth::routes(['register' => false]); //Auth::routes();
 
