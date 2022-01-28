@@ -62,7 +62,10 @@ class AuctionOrderNopayNotify extends Command
 
         $result3 = $this->makeIt($notPayed3);
         $result48 = $this->makeIt($notPayed48);
+
         //dd($result3, $result48);
+        //echo print_r($result3,1);
+        //echo print_r($result48,1);
 
         return 0;
     }
@@ -83,6 +86,8 @@ class AuctionOrderNopayNotify extends Command
             ];
 
             $result[] = $this->curlPost($link, $data);
+            //$result[] = $this->curlGet($link .'/?'. http_build_query($data));
+
         }
 
         return $result;
@@ -107,5 +112,10 @@ class AuctionOrderNopayNotify extends Command
         curl_close($curl);
 
         return ['response' => $response, 'status' => $status ];
+    }
+
+    private function curlGet(string $link)
+    {
+        return file_get_contents($link);
     }
 }

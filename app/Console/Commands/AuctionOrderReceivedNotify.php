@@ -58,9 +58,13 @@ class AuctionOrderReceivedNotify extends Command
                     'id' => $order->id,
                 ];
                 $result[] = $this->curlPost($link, $data);
+                //$result[] = $this->curlGet($link .'/?'. http_build_query($data));
             }
         }
+
         //dd($result);
+        //echo print_r($result,1);
+
         return 0;
     }
 
@@ -83,6 +87,11 @@ class AuctionOrderReceivedNotify extends Command
         curl_close($curl);
 
         return ['response' => $response, 'status' => $status ];
+    }
+
+    private function curlGet(string $link)
+    {
+        return file_get_contents($link);
     }
 
 }
