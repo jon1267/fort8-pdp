@@ -590,9 +590,31 @@ class AuctionController extends Controller
             }
         }
 
-        //dd($result);//полная отдача, с дублями
+        if (is_array($result) && count($result)) {
+            //уникальность по ключу 'art', есть потеря уникальных дат (просит заказчик)
+            $result = array_values($this->array_unique_key($result, 'art'));
+        }
+
+        //dd($result);//уникальность по ключу 'art'
         //dd(array_values(array_unique($result, SORT_REGULAR)));
-        return response()->json(array_values(array_unique($result, SORT_REGULAR)));
+        return response()->json($result); //return response()->json(array_values(array_unique($result, SORT_REGULAR)));
+    }
+
+    // этот код делает уникальность по ключу, в массиве $result[i]['art']['date'] (i = 0....n)
+    private function array_unique_key($array, $key)
+    {
+        $tmp = [];
+        $key_array = [];
+        $i = 0;
+
+        foreach($array as $val) {
+            if (!in_array($val[$key], $key_array)) {
+                $key_array[$i] = $val[$key];
+                $tmp[$i] = $val;
+            }
+            $i++;
+        }
+        return $tmp;
     }
 
     // route /auction/getPayStatusList
